@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+<article class="post-container" style="font-family: 'Ubuntu Mono', monospace; color: #33ff33;">
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1 class="post-title"  style="font-size: 1.8rem; color: #fabd2f;">{{ page.title }}</h1>
+    <a href="/" class="terminal-btn">[Home]</a>
+  </div>
+
+  <p class="post-date" style="color: #999; font-size: 1rem;">
+    {{ page.date | date: "%B %d, %Y" }}
+  </p>
+
+  <div class="terminal-divider"></div>
+
+  <div class="post-body" style="line-height: 1.8; font-size: 1.1rem; color: #8efa2f;">
+    {{ content }}
+  </div>
+
+  <div class="terminal-divider"></div>
+</article>

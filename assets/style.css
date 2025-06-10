@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu&family=Ubuntu+Mono&display=swap');
+
+body {
+  background-color: #000;
+  color: #33ff33;
+  font-family: 'Ubuntu', sans-serif;
+  padding: 2rem 25vw; /* Default: 25% left/right on desktop */
+  line-height: 1.6;
+}
+
+/* Tablets & smaller */
+@media (max-width: 1024px) {
+  body {
+    padding: 2rem 15vw;
+  }
+}
+
+/* Super narrow screens (phones) */
+@media (max-width: 600px) {
+  body {
+    padding: 1.5rem 10vw;
+  }
+}
+
+.neofetch-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.neofetch-img {
+  width: 150px;
+  border: 0px solid #33ff33;
+  border-radius: 4px;
+}
+
+.neofetch-text pre {
+  color: #33ff33;
+  margin: 0;
+  font-family: 'Ubuntu Mono', monospace;
+  white-space: pre;
+  font-size: 1.2rem; 
+  line-height: 1.8;
+
+}
+
+.terminal-btn-title {
+  font-size: 1.5rem;
+  color: #fabd2f; /* Gruvbox yellow */
+  text-decoration: none;
+  font-family: 'Ubuntu Mono', monospace;
+}
+.terminal-btn-title:hover {
+  color: #b8bb26; /* Gruvbox green for hover */
+}
+.terminal-btn {
+  color: #fabd2f; /* Gruvbox yellow */
+  text-decoration: none;
+  font-family: 'Ubuntu Mono', monospace;
+}
+
+.terminal-btn:hover {
+  color: #b8bb26; /* Gruvbox green for hover */
+}
+
+.blinking-cursor {
+  display: inline-block;
+  color: #33ff33;      /* neon green, matching your text */
+  animation: blink 1s step-start infinite;
+  font-weight: bold;
+  font-family: 'Ubuntu Mono', monospace;
+}
+
+/* The blinking effect */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.neofetch-img {
+  width: 150px;
+  height: 320px;
+  border: 0px solid #33ff33;
+  border-radius: 4px;
+  transition: opacity 0.5s ease-in-out;
+  cursor: pointer;
+}
+
+.terminal-divider {
+  font-family: 'Ubuntu Mono', monospace;
+  color: #928374; /* Gruvbox gray */
+  border-top: 1px solid #3c3836;
+  margin: 2rem 0;
+  text-align: center;
+  position: relative;
+}
+
+.terminal-divider::before {
+  content: "─────── ✦ ───────";
+  position: absolute;
+  top: -0.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  padding: 0 0.5rem;
+  color: #b8bb26;
+  font-size: 0.9rem;
+}
+
+.terminal-links .terminal-btn {
+  font-size: 1.3rem; /* or try 1.4rem for chunkier style */
+  line-height: 2;
+}
+
+.terminal-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-family: 'Ubuntu Mono', monospace;
+  color: #33ff33;
+  font-size: 1.1rem;
+}
+
+.footer-link a {
+  text-decoration: none;
+  color: #fabd2f;
+  padding: 0 0.5rem;
+}
+
+.footer-link a:hover {
+  color: #b8bb26;
+}
+
+.post-container {
+  font-family: 'Ubuntu Mono', monospace;
+  color: #33ff33;
+}
+
+.post-title {
+  font-size: 1.8rem;
+}
+
+.post-date {
+  color: #888;
+  font-size: 1rem;
+}
+
+.post-body {
+  font-size: 1.1rem;
+  line-height: 1.8;
+}

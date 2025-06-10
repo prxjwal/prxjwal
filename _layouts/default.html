@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page.title }}</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  
+
+  <main>
+    {{ content }}
+  </main>
+
+ <footer class="terminal-footer">
+  <span class="footer-link">
+    [<a href="https://github.com/prxjwal" target="_blank">GitHub</a>]
+  </span>
+  <span class="footer-link">
+    [<a href="https://x.com/_deadlead_" target="_blank">X</a>]
+  </span>
+    <span class="footer-link">
+    [<a href="www.linkedin.com/in/prxjwal" target="_blank">Linkedin</a>]
+  </span>
+</footer>
+<script>
+  // Local time update (you already have this)
+  function updateTime() {
+    const now = new Date();
+    const options = {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short'
+    };
+    const formatted = now.toLocaleTimeString(undefined, options);
+    document.getElementById('localtime').textContent = formatted;
+  }
+
+  updateTime();
+  setInterval(updateTime, 1000);
+
+  const dotElement = document.getElementById("dotloader");
+  const dots = ["", ".", "..", "..."];
+  let i = 0;
+
+  setInterval(() => {
+    dotElement.textContent = dots[i];
+    i = (i + 1) % dots.length;
+  }, 500);
+
+
+ const images = [
+    "/assets/prx.jpg",
+    "/assets/prx3.jpg",
+    "/assets/prx1.jpg",
+  ];
+
+  let currentIndex = 0;
+  const imageEl = document.getElementById("dynamic-img");
+
+  function switchImage() {
+    imageEl.style.opacity = 0;
+    setTimeout(() => {
+      currentIndex = (currentIndex + 1) % images.length;
+      imageEl.src = images[currentIndex];
+      imageEl.style.opacity = 1;
+    }, 300); // slight delay during fade out
+  }
+
+  // Auto switch every 6 seconds
+  setInterval(switchImage, 6000);
+
+  // Manual switch on click
+  imageEl.addEventListener("click", switchImage);
+</script>
+
+
+</body>
+</html>
