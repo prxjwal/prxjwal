@@ -4,250 +4,352 @@ title: prxjwal
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 
 <style>
-  /* --- 1. CONFIGURATION (The Rice) --- */
-  :root {
-    --bg-color: #050505;
-    --term-green: #33ff00;      /* Matrix/Phosphor Green */
-    --term-glow: rgba(51, 255, 0, 0.5);
-    --accent: #bd93f9;          /* Dracula Purple (for contrast) */
-    --text-dim: #666;
-    --font-main: 'Fira Code', monospace;
-    --font-header: 'VT323', monospace;
-  }
+    /* --- THEME: WINDOWS 95/98 --- */
+    :root {
+        --bg-color: #008080;       /* Classic Teal */
+        --win-gray: #c0c0c0;       /* The "Windows" Gray */
+        --win-blue: #000080;       /* Title Bar Blue */
+        --win-text: #000000;
+        --border-light: #ffffff;
+        --border-dark: #000000;
+        --border-mid: #808080;
+    }
 
-  /* --- 2. BASE STYLES --- */
-  body {
-    background-color: var(--bg-color);
-    color: var(--term-green);
-    font-family: var(--font-main);
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow-x: hidden;
-  }
+    * { box-sizing: border-box; }
 
-  /* --- 3. CRT OVERLAY EFFECTS --- */
-  body::after {
-    content: " ";
-    display: block;
-    position: fixed;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    z-index: 100;
-    background-size: 100% 2px, 3px 100%;
-    pointer-events: none;
-  }
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fallback to standard sans */
+        overflow: hidden; /* Prevent scrolling on desktop */
+        height: 100vh;
+        user-select: none; /* Make it feel like an OS, not a doc */
+    }
 
-  /* Text Bloom/Glow */
-  .glow {
-    text-shadow: 0 0 5px var(--term-glow);
-  }
+    /* --- DESKTOP ICONS --- */
+    .icon-grid {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        z-index: 0;
+    }
 
-  /* --- 4. THE TERMINAL WINDOW --- */
-  .terminal-window {
-    width: 100%;
-    max-width: 700px;
-    background: rgba(10, 10, 10, 0.95);
-    border: 1px solid #333;
-    box-shadow: 0 0 20px rgba(51, 255, 0, 0.15); /* Green ambient glow */
-    position: relative;
-    padding-bottom: 20px;
-  }
+    .desktop-icon {
+        width: 70px;
+        text-align: center;
+        cursor: pointer;
+        color: white;
+        text-shadow: 1px 1px 0px black;
+    }
 
-  /* Window Title Bar */
-  .title-bar {
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
-    padding: 5px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    color: #888;
-  }
+    .desktop-icon img {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
+        image-rendering: pixelated;
+    }
 
-  .window-controls {
-    display: flex;
-    gap: 8px;
-  }
-  .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
-  .dot.red { background: #ff5555; }
-  .dot.yellow { background: #f1fa8c; }
-  .dot.green { background: #50fa7b; }
+    /* --- WINDOW SYSTEM --- */
+    .window {
+        position: absolute;
+        background: var(--win-gray);
+        border-top: 2px solid var(--border-light);
+        border-left: 2px solid var(--border-light);
+        border-right: 2px solid var(--border-dark);
+        border-bottom: 2px solid var(--border-dark);
+        box-shadow: 1px 1px 0px black;
+        width: 400px;
+        display: flex; /* Flex column for title/content */
+        flex-direction: column;
+    }
 
-  /* --- 5. CONTENT LAYOUT --- */
-  .terminal-content {
-    padding: 25px;
-  }
+    .title-bar {
+        background: var(--win-blue);
+        color: white;
+        padding: 4px 8px;
+        font-weight: bold;
+        font-family: 'Courier New', Courier, monospace;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: default;
+    }
 
-  /* The "Neofetch" Area */
-  .fetch-container {
-    display: flex;
-    gap: 30px;
-    align-items: flex-start;
-    margin-bottom: 30px;
-  }
-
-  .avatar {
-    width: 150px;
-    height: 150px;
-    border: 2px solid var(--term-green);
-    object-fit: cover;
-    /* Pixelate slightly for retro feel */
-    image-rendering: pixelated; 
-    box-shadow: 0 0 10px var(--term-glow);
-  }
-
-  .info-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-  }
-
-  .info-item { display: flex; gap: 10px; }
-  .key { color: var(--accent); font-weight: bold; }
-  .val { color: var(--term-green); }
-
-  /* --- 6. COMMAND GRID (Links) --- */
-  .cmd-prompt {
-    margin-bottom: 15px;
-    border-top: 1px dashed #333;
-    padding-top: 20px;
-    color: #888;
-  }
-
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 15px;
-  }
-
-  a.grid-item {
-    border: 1px solid #333;
-    padding: 15px;
-    text-align: center;
-    color: var(--text-dim);
-    text-decoration: none;
-    transition: all 0.2s;
-    background: rgba(255,255,255,0.02);
-  }
-
-  a.grid-item:hover {
-    border-color: var(--term-green);
-    color: var(--term-green);
-    box-shadow: 0 0 10px var(--term-glow);
-    background: rgba(51, 255, 0, 0.05);
-    transform: translateY(-2px);
-  }
-
-  /* --- 7. MOBILE OPTIMIZATION --- */
-  @media screen and (max-width: 650px) {
-    body { padding: 10px; align-items: flex-start; }
-    
-    .fetch-container {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+    .title-bar-controls button {
+        background: var(--win-gray);
+        border-top: 1px solid var(--border-light);
+        border-left: 1px solid var(--border-light);
+        border-right: 1px solid var(--border-dark);
+        border-bottom: 1px solid var(--border-dark);
+        font-weight: bold;
+        width: 20px;
+        height: 18px;
+        line-height: 14px;
+        font-size: 10px;
+        cursor: pointer;
     }
     
-    .avatar { width: 120px; height: 120px; }
-    
-    .info-item { 
-      justify-content: center; /* Center text on mobile */
+    .window-body {
+        padding: 15px;
+        font-size: 14px;
+        color: black;
+        overflow-y: auto; /* Allow scrolling inside window */
+        max-height: 400px;
     }
-    
-    .grid-container {
-      grid-template-columns: 1fr; /* Full width buttons on phone */
-    }
-  }
 
+    /* Content styling inside windows */
+    .window-body p { margin-top: 0; }
+    .window-body a { color: blue; text-decoration: underline; cursor: pointer; }
+    
+    .field-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .avatar {
+        width: 80px; height: 80px; 
+        border: 2px solid gray; 
+        margin-right: 15px;
+        float: left;
+    }
+
+    /* --- TASKBAR --- */
+    .taskbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: var(--win-gray);
+        border-top: 2px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        z-index: 9999;
+    }
+
+    .start-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        background: var(--win-gray);
+        border-top: 2px solid var(--border-light);
+        border-left: 2px solid var(--border-light);
+        border-right: 2px solid var(--border-dark);
+        border-bottom: 2px solid var(--border-dark);
+        font-weight: bold;
+        font-style: italic;
+        margin-right: 10px;
+        box-shadow: 1px 1px 0 black;
+        cursor: pointer;
+    }
+    
+    .start-btn:active {
+        border-top: 2px solid var(--border-dark);
+        border-left: 2px solid var(--border-dark);
+        border-right: 2px solid var(--border-light);
+        border-bottom: 2px solid var(--border-light);
+        transform: translateY(1px);
+    }
+
+    .tray-clock {
+        margin-left: auto;
+        border: 2px solid gray;
+        border-style: inset;
+        padding: 3px 10px;
+        font-family: monospace;
+        background: white;
+    }
+
+    /* --- MOBILE OVERRIDES --- */
+    @media (max-width: 768px) {
+        body {
+            overflow: auto; /* Enable scroll on body */
+            height: auto;
+            padding-bottom: 50px;
+            background: #008080;
+        }
+
+        .icon-grid {
+            position: relative;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 20px;
+            top: 0; left: 0;
+        }
+
+        /* Disable dragging styling on mobile */
+        .window {
+            position: relative !important; /* Stack them */
+            width: 90% !important;
+            margin: 20px auto;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+        }
+        
+        .title-bar { cursor: default; } /* No drag cursor */
+        
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+        }
+    }
 </style>
 
-<div class="terminal-window">
-  
-  <div class="title-bar">
-    <div class="window-controls">
-      <div class="dot red"></div>
-      <div class="dot yellow"></div>
-      <div class="dot green"></div>
+<div class="icon-grid">
+    <div class="desktop-icon" onclick="openWindow('win-about')">
+        <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="My PC">
+        <br>My PC
     </div>
-    <div id="realtime-clock">--:--:--</div>
-  </div>
-
-  <div class="terminal-content">
-    
-    <div class="fetch-container">
-      <img src="/assets/prx.jpg" alt="prx" class="avatar" />
-      
-      <div class="info-list">
-        <div style="font-size: 1.5rem; margin-bottom: 10px;" class="glow">prxjwal</div>
-        
-        <div class="info-item">
-          <span class="key">os</span>
-          <span class="val">Arch Linux</span>
-        </div>
-        <div class="info-item">
-          <span class="key">host</span>
-          <span class="val">live@github-pages</span>
-        </div>
-        <div class="info-item">
-          <span class="key">focus</span>
-          <span class="val"><a href="https://github.com/Pwnb0x/ZaryaOS" style="color:white; text-decoration: underline;">ZaryaOS</a> <span id="spinner">⠋</span></span>
-        </div>
-        <div class="info-item">
-          <span class="key">fuel</span>
-          <span class="val">Coffee</span>
-        </div>
-      </div>
+    <div class="desktop-icon" onclick="openWindow('win-projects')">
+        <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png" alt="Projects">
+        <br>ZaryaOS
     </div>
-
-    <div class="cmd-prompt">
-      <span style="color: var(--term-green);">➜</span> <span style="color: cyan;">~</span> select_module:
+    <div class="desktop-icon">
+        <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_full-4.png" alt="Trash">
+        <br>Trash
     </div>
-
-    <div class="grid-container">
-      <a href="/ctf/" class="grid-item">[ CTF Writeups ]</a>
-      <a href="/blog/" class="grid-item">[ Blog Posts ]</a>
-      <a href="/shitpost/" class="grid-item">[ Shitposts ]</a>
-      <a href="assets/Resume.pdf" class="grid-item" style="color: var(--accent);">[ View Resume ]</a>
-    </div>
-
-    <div class="cmd-prompt" style="margin-top: 30px;">
-        <span style="color: var(--term-green);">➜</span> <span style="color: cyan;">~</span> external_links:
-    </div>
-    
-    <div style="display: flex; gap: 15px; justify-content: center; opacity: 0.8;">
-        <a href="https://github.com/prxjwal" style="color:inherit; text-decoration: none;">github</a>
-        <span>/</span>
-        <a href="#" style="color:inherit; text-decoration: none;">linkedin</a>
-        <span>/</span>
-        <a href="#" style="color:inherit; text-decoration: none;">x.com</a>
-    </div>
-
-  </div>
 </div>
 
-<script>
-  // 1. Real Time Clock (Top Right)
-  function updateTime() {
-    const now = new Date();
-    document.getElementById('realtime-clock').innerText = now.toLocaleTimeString();
-  }
-  setInterval(updateTime, 1000);
-  updateTime();
+<div id="win-about" class="window" style="top: 50px; left: 120px;">
+    <div class="title-bar" id="drag-about">
+        <div class="title-text">Welcome to Prxjwal OS</div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize">_</button>
+            <button aria-label="Maximize">□</button>
+            <button aria-label="Close" onclick="closeWindow('win-about')">X</button>
+        </div>
+    </div>
+    <div class="window-body">
+        <img src="/assets/prx.jpg" alt="prx" class="avatar">
+        <p><strong>User:</strong> prxjwal</p>
+        <p><strong>Role:</strong> CyberSec Student / Linux Enthusiast</p>
+        <p><strong>Status:</strong> "btw i use arch"</p>
+        <hr>
+        <p>Welcome to my digital garden. Feel free to drag these windows around.</p>
+        <p>
+            <a href="https://github.com/prxjwal">[GitHub]</a> 
+            <a href="/assets/Resume.pdf">[Resume]</a>
+        </p>
+    </div>
+</div>
 
-  // 2. Simple Spinner for ZaryaOS
-  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-  let i = 0;
-  setInterval(() => {
-    document.getElementById('spinner').innerText = frames[i];
-    i = (i + 1) % frames.length;
-  }, 100);
+<div id="win-projects" class="window" style="top: 150px; left: 200px;">
+    <div class="title-bar" id="drag-projects">
+        <div class="title-text">C:\Users\prx\Links</div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize">_</button>
+            <button aria-label="Maximize">□</button>
+            <button aria-label="Close" onclick="closeWindow('win-projects')">X</button>
+        </div>
+    </div>
+    <div class="window-body">
+        <p>Select a destination:</p>
+        <ul style="padding-left: 20px;">
+            <li><a href="/ctf/">📂 CTF_Writeups</a></li>
+            <li><a href="/blog/">📂 Blog_Posts</a></li>
+            <li><a href="/shitpost/">📄 shitpost.txt</a></li>
+            <li><a href="https://github.com/Pwnb0x/ZaryaOS">💿 ZaryaOS (Building...)</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="taskbar">
+    <div class="start-btn">
+        <img src="https://win98icons.alexmeub.com/icons/png/windows-0.png" style="height:20px;">
+        Start
+    </div>
+    <div style="border-left: 2px solid gray; height: 25px; margin-left: 10px;"></div>
+    <div class="tray-clock" id="clock">12:00 PM</div>
+</div>
+
+
+<script>
+    // --- 1. WINDOW MANAGEMENT (Z-Index) ---
+    let zIndex = 10;
+    
+    function bringToFront(element) {
+        zIndex++;
+        element.style.zIndex = zIndex;
+    }
+
+    function closeWindow(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function openWindow(id) {
+        const win = document.getElementById(id);
+        win.style.display = 'flex';
+        bringToFront(win);
+    }
+
+    // Attach click events to windows to bring them to front
+    document.querySelectorAll('.window').forEach(win => {
+        win.addEventListener('mousedown', () => bringToFront(win));
+    });
+
+    // --- 2. DRAG FUNCTIONALITY (Desktop Only) ---
+    function makeDraggable(elementId, handleId) {
+        const elmnt = document.getElementById(elementId);
+        const handle = document.getElementById(handleId);
+        
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        if (window.innerWidth <= 768) return; // Disable on mobile
+
+        handle.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Get mouse cursor position at startup
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+            bringToFront(elmnt); // Active window to front
+        }
+
+        function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            // Calculate new cursor position
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // Set the element's new position
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            // Stop moving when mouse button is released
+            document.onmouseup = null;
+            document.onmousemove = null;
+        }
+    }
+
+    // Initialize Draggable Windows
+    makeDraggable("win-about", "drag-about");
+    makeDraggable("win-projects", "drag-projects");
+
+    // --- 3. CLOCK ---
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
 </script>
