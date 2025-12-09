@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prxjwal - Windows 98</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     
@@ -18,23 +18,27 @@
             --win-black: #000000;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
             margin: 0; padding: 0;
-            background-color: var(--bg-teal); /* INSTANT TEAL */
+            background-color: var(--bg-teal);
             font-family: 'Segoe UI', Tahoma, sans-serif;
             overflow: hidden;
             height: 100vh;
             user-select: none;
             cursor: default;
+            /* Pixel Perfect Font Rendering */
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* --- DESKTOP ENVIRONMENT --- */
         #desktop-environment {
             width: 100%; height: 100%;
             position: relative;
-            display: block; /* Ensures visibility immediately */
+            display: block;
+            touch-action: none; /* Critical for dragging on mobile */
         }
 
         /* UTILS: Bevels */
@@ -50,10 +54,11 @@
             font-size: 13px; margin: 10px;
             cursor: pointer;
             border: 1px solid transparent;
+            z-index: 10;
         }
         .icon:active { border: 1px dotted yellow; background: rgba(0,0,128,0.5); }
-        .icon img { width: 32px; height: 32px; margin-bottom: 5px; image-rendering: pixelated; }
-        .icon span { padding: 2px; text-shadow: 1px 1px 0 black; }
+        .icon img { width: 32px; height: 32px; margin-bottom: 5px; image-rendering: pixelated; pointer-events: none; }
+        .icon span { padding: 2px; text-shadow: 1px 1px 0 black; pointer-events: none; }
 
         /* --- WINDOWS --- */
         .window {
@@ -71,6 +76,7 @@
             padding: 3px 4px;
             display: flex; justify-content: space-between; align-items: center;
             color: white; font-weight: bold; font-size: 13px;
+            touch-action: none;
         }
         .title-bar.inactive { background: var(--win-dark); }
 
@@ -102,9 +108,11 @@
         }
         .start-btn img { height: 16px; }
 
-        .task-list { flex-grow: 1; display: flex; gap: 3px; padding-left: 4px; }
+        .task-list { flex-grow: 1; display: flex; gap: 3px; padding-left: 4px; overflow-x: auto; }
+        .task-list::-webkit-scrollbar { display: none; } /* Hide scrollbar on mobile taskbar */
+        
         .task-item {
-            width: 140px; height: 22px;
+            min-width: 140px; max-width: 140px; height: 22px;
             padding: 3px 5px; font-size: 12px;
             display: flex; align-items: center; gap: 5px;
             cursor: pointer;
@@ -125,9 +133,9 @@
             width: 180px; background: var(--win-gray);
             border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000;
             display: none; z-index: 10001;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
         }
 
-        /* [FIXED] Updated Sidebar CSS for perfect alignment */
         .start-side { 
             width: 25px; 
             background: #000080; 
@@ -136,41 +144,37 @@
             align-items: center; 
             justify-content: flex-end; 
             padding-bottom: 5px;
-            writing-mode: vertical-lr; /* Vertical text mode */
-            transform: rotate(180deg); /* Flip bottom-to-top */
-        }
-        .start-side span { 
-            font-weight: bold; 
-            font-size: 16px; 
-            /* Transformations removed as they are handled by parent now */
+            writing-mode: vertical-lr; 
+            transform: rotate(180deg); 
         }
         
         .menu-items { flex: 1; display: flex; flex-direction: column; }
         .menu-item { padding: 8px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .menu-item:hover { background: #000080; color: white; }
 
-        /* --- MOBILE OVERRIDES --- */
-        @media (max-width: 768px) {
-            .icon { position: relative; float: left; margin: 10px; }
-            .window { width: 96% !important; left: 2% !important; top: 5% !important; height: 80% !important; }
-            .task-item { width: 50px; }
-        }
-
+        /* REMOVED: All mobile-specific overrides to enforce desktop-like behavior */
+        
     </style>
 </head>
 <body>
 
     <div id="desktop-environment">
         
-        <div class="icon" id="icon-pc" style="top: 10px; left: 10px;" ondblclick="openWindow('win-pc', 'My Computer', 'computer')">
+        <div class="icon" id="icon-pc" style="top: 10px; left: 10px;" 
+             ondblclick="openWindow('win-pc', 'My Computer', 'computer')" 
+             ontouchend="handleTap(event, 'win-pc', 'My Computer', 'computer')">
             <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png">
             <span>My Computer</span>
         </div>
-        <div class="icon" id="icon-trash" style="top: 100px; left: 10px;">
-            <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png">
+        
+        <div class="icon" id="icon-trash" style="top: 100px; left: 10px;"
+             ontouchend="handleTap(event, null, null, null)"> <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png">
             <span>Recycle Bin</span>
         </div>
-        <div class="icon" id="icon-docs" style="top: 190px; left: 10px;" ondblclick="openWindow('win-docs', 'My Documents', 'folder')">
+        
+        <div class="icon" id="icon-docs" style="top: 190px; left: 10px;" 
+             ondblclick="openWindow('win-docs', 'My Documents', 'folder')"
+             ontouchend="handleTap(event, 'win-docs', 'My Documents', 'folder')">
             <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png">
             <span>My Documents</span>
         </div>
@@ -186,6 +190,8 @@
             </div>
             <div class="win-body inset" style="background:white; padding: 10px;">
                 <p>System Root (C:)</p>
+                <br>
+                <p>3 Object(s)</p>
             </div>
         </div>
 
@@ -199,7 +205,8 @@
                 </div>
             </div>
             <div class="win-body inset" style="background:white; padding: 10px;">
-                <p>User Documents</p>
+                <p>Resume.txt</p>
+                <p>Projects</p>
             </div>
         </div>
 
@@ -239,7 +246,8 @@
         // --- WINDOW MANAGER ENGINE ---
         let zIndex = 100;
         let activeWindow = null;
-        let isMobile = window.innerWidth <= 768;
+        // Detect mobile to adjust interactions slightly
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
         function bringToFront(id) {
             zIndex++;
@@ -265,6 +273,14 @@
                 // Reset Minimize state
                 win.dataset.minimized = "false"; 
                 addToTaskbar(id, title, iconName);
+                
+                // On mobile, center new windows if they are off-screen
+                if(isTouchDevice && win.dataset.positioned !== "true") {
+                    win.style.top = "10%";
+                    win.style.left = "5%";
+                    win.style.width = "90%"; // Initial nice size, but resizable
+                    win.dataset.positioned = "true";
+                }
             }
             bringToFront(id);
         }
@@ -278,7 +294,6 @@
             const win = document.getElementById(id);
             win.style.display = 'none';
             win.dataset.minimized = "true";
-            
             const tab = document.getElementById('tab-' + id);
             if(tab) tab.classList.remove('active');
         }
@@ -306,6 +321,23 @@
                 win.dataset.maximized = "true";
             }
             bringToFront(id);
+        }
+
+        // --- MOBILE DOUBLE TAP ENGINE ---
+        let tapTimeout;
+        let lastTap = 0;
+        
+        function handleTap(e, winId, title, icon) {
+            // Prevent dragging logic from firing if we are just tapping
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            
+            if (tapLength < 300 && tapLength > 0) {
+                // Double Tap Detected
+                e.preventDefault(); 
+                if(winId) openWindow(winId, title, icon);
+            }
+            lastTap = currentTime;
         }
 
         // --- TASKBAR ENGINE ---
@@ -342,44 +374,90 @@
         function toggleStart() {
             const menu = document.getElementById('start-menu');
             menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+            if(menu.style.display === 'flex') {
+                menu.style.zIndex = zIndex + 100; // Ensure it's always on top
+            }
         }
         
-        window.onclick = function(e) {
-            if (!e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
+        // Unified Click/Tap handler for closing Start Menu
+        function handleGlobalClick(e) {
+             if (!e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
                 document.getElementById('start-menu').style.display = 'none';
             }
         }
+        window.addEventListener('click', handleGlobalClick);
+        window.addEventListener('touchstart', handleGlobalClick, {passive: true});
 
-        // --- DRAG ENGINE ---
+        // --- UNIFIED DRAG ENGINE (MOUSE & TOUCH) ---
         function makeDraggable(el, handle) {
-            if(isMobile) return; 
-            
-            handle.onmousedown = function(e) {
-                e.preventDefault();
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            function dragStart(e) {
+                // Allow interactions with buttons inside the title bar (close/min/max)
+                if (e.target.classList.contains('win-btn')) return;
+
                 if(el.classList.contains('window')) bringToFront(el.id);
-
-                let startX = e.clientX;
-                let startY = e.clientY;
-                let startLeft = el.offsetLeft;
-                let startTop = el.offsetTop;
-
-                document.onmousemove = function(e) {
-                    let dx = e.clientX - startX;
-                    let dy = e.clientY - startY;
-                    el.style.left = (startLeft + dx) + "px";
-                    el.style.top = (startTop + dy) + "px";
+                
+                // Get pointer position (Mouse or Touch)
+                if (e.type === "touchstart") {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    e.preventDefault(); // Prevent text selection on desktop
+                    startX = e.clientX;
+                    startY = e.clientY;
                 }
 
-                document.onmouseup = function() {
-                    document.onmousemove = null;
-                    document.onmouseup = null;
+                initialLeft = el.offsetLeft;
+                initialTop = el.offsetTop;
+                isDragging = true;
+            }
+
+            function dragMove(e) {
+                if (!isDragging) return;
+
+                let clientX, clientY;
+                
+                if (e.type === "touchmove") {
+                    // Prevent page scrolling while dragging window
+                    e.preventDefault(); 
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    e.preventDefault();
+                    clientX = e.clientX;
+                    clientY = e.clientY;
                 }
-            };
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                el.style.left = (initialLeft + dx) + "px";
+                el.style.top = (initialTop + dy) + "px";
+            }
+
+            function dragEnd() {
+                isDragging = false;
+            }
+
+            // Mouse Events
+            handle.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", dragMove);
+            document.addEventListener("mouseup", dragEnd);
+
+            // Touch Events (Passive: false required to use preventDefault inside move)
+            handle.addEventListener("touchstart", dragStart, { passive: false });
+            document.addEventListener("touchmove", dragMove, { passive: false });
+            document.addEventListener("touchend", dragEnd);
         }
 
+        // Apply Dragging
         document.querySelectorAll('.window').forEach(win => {
             makeDraggable(win, win.querySelector('.title-bar'));
+            // Bring to front on touch/click
             win.addEventListener('mousedown', () => bringToFront(win.id));
+            win.addEventListener('touchstart', () => bringToFront(win.id), {passive: true});
         });
 
         document.querySelectorAll('.icon').forEach(icon => {
