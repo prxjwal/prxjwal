@@ -1,552 +1,466 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Windows 98</title>
-    
-    <style>
-        /* --- SYSTEM VARIABLES --- */
-        :root {
-            --bg-teal: #008080;
-            --win-gray: #c0c0c0;
-            --win-blue: #000080;
-            --win-blue-grad: #1084d0;
-            --win-light: #ffffff;
-            --win-dark: #808080;
-            --win-black: #000000;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Windows 98 Mobile</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/98.css">
+  
+  <style>
+    /* =========================================
+       CUSTOM STYLES (Previously assets/css/main.css)
+       ========================================= */
+    body {
+      background-color: #008080; /* Teal */
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Pixelated MS Sans Serif', Arial;
+      height: 100vh;
+      width: 100vw;
+      user-select: none; /* Prevent text selection while dragging */
+    }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-teal);
-            font-family: 'Segoe UI', Tahoma, sans-serif; /* Close to MS Sans Serif */
-            overflow: hidden;
-            height: 100vh;
-            user-select: none;
-            cursor: default;
-            -webkit-font-smoothing: none;
-        }
+    /* THE DESKTOP SURFACE */
+    #desktop {
+      height: calc(100vh - 35px);
+      width: 100%;
+      position: relative;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 15px;
+      box-sizing: border-box;
+    }
 
-        /* --- DESKTOP --- */
-        #desktop {
-            width: 100%; height: 100%;
-            position: relative;
-            touch-action: none;
-        }
+    /* DESKTOP ICONS */
+    .desktop-icon {
+      width: 75px;
+      text-align: center;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-shadow: 1px 1px 0 #000;
+    }
 
-        /* UTILS */
-        .outset { box-shadow: inset -1px -1px #000, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf; background: var(--win-gray); }
-        .inset  { box-shadow: inset -1px -1px #fff, inset 1px 1px #000, inset -2px -2px #dfdfdf, inset 2px 2px #808080; background: #fff; }
-        .divider { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 4px 2px; }
+    .desktop-icon img {
+      width: 32px;
+      height: 32px;
+      margin-bottom: 5px;
+    }
 
-        /* --- ICONS --- */
-        .icon {
-            position: absolute;
-            width: 75px;
-            display: flex; flex-direction: column; align-items: center;
-            text-align: center; color: white;
-            font-size: 11px; margin: 10px;
-            cursor: pointer;
-            z-index: 10;
-        }
-        /* Dotted border on click */
-        .icon:active img { filter: drop-shadow(0 0 0 blue); } 
-        .icon.selected img { filter: brightness(0.7) sepia(1) hue-rotate(180deg) saturate(3); } /* Faux blue selection */
-        
-        .icon img { width: 32px; height: 32px; margin-bottom: 4px; image-rendering: pixelated; pointer-events: none; }
-        .icon span { padding: 1px 3px; pointer-events: none; }
-        .icon.selected span { background: #000080; border: 1px dotted #ffff00; }
+    .desktop-icon span {
+      background: transparent;
+      padding: 2px;
+      font-size: 14px;
+    }
 
-        /* --- WINDOWS --- */
-        .window {
-            position: absolute;
-            background: var(--win-gray);
-            padding: 3px;
-            display: none; flex-direction: column;
-            box-shadow: 1px 1px 0 black;
-            border-top: 2px solid #fff; border-left: 2px solid #fff;
-            border-right: 2px solid #000; border-bottom: 2px solid #000;
-        }
+    .desktop-icon:active span, .desktop-icon.selected span {
+      background: #000080;
+      border: 1px dotted yellow;
+    }
 
-        .title-bar {
-            background: linear-gradient(90deg, var(--win-blue), var(--win-blue-grad));
-            padding: 3px 4px;
-            display: flex; justify-content: space-between; align-items: center;
-            color: white; font-weight: bold; font-size: 13px;
-            touch-action: none;
-        }
-        .title-bar.inactive { background: var(--win-dark); }
-        
-        .title-text { display: flex; align-items: center; gap: 5px; }
+    /* WINDOW STYLING */
+    .window {
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      width: 300px; /* Default Desktop Width */
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
 
-        .win-controls { display: flex; gap: 2px; }
-        .win-btn {
-            width: 16px; height: 14px;
-            background: var(--win-gray);
-            border: 1px solid #fff; border-right-color: #000; border-bottom-color: #000;
-            font-size: 9px; font-weight: bold; line-height: 10px; text-align: center;
-            cursor: pointer;
-            color: black;
-        }
-        .win-btn:active { border: 1px solid #000; border-right-color: #fff; border-bottom-color: #fff; transform: translate(1px, 1px); }
+    .window-body {
+      margin: 0;
+      flex-grow: 1;
+      overflow: auto;
+      background: silver;
+      padding: 10px;
+      height: 200px; /* Default height */
+    }
 
-        .win-body { flex: 1; overflow: auto; background: var(--win-light); color: black; margin-top: 2px; position: relative; }
+    /* TASKBAR STYLING */
+    #taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 35px;
+      background: silver;
+      border-top: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      z-index: 9999;
+      box-shadow: inset 0 1px 0 #dfdfdf;
+    }
 
-        /* --- FILE GRID INSIDE WINDOWS --- */
-        .file-grid {
-            display: flex; flex-wrap: wrap; padding: 10px; align-content: flex-start;
-        }
-        .file-item {
-            width: 70px; height: 70px;
-            display: flex; flex-direction: column; align-items: center;
-            font-size: 11px; text-align: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-        .file-item:active span { background: #000080; color: white; border: 1px dotted yellow; }
-        .file-item img { width: 32px; height: 32px; margin-bottom: 5px; }
+    #start-button {
+      font-weight: bold;
+      height: 28px;
+      margin-right: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 6px;
+    }
 
-        /* --- TASKBAR --- */
-        .taskbar {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 28px;
-            background: var(--win-gray);
-            border-top: 2px solid #fff;
-            display: flex; align-items: center; padding: 2px;
-            z-index: 10000;
-        }
+    /* TASKBAR ITEMS */
+    .taskbar-item {
+      width: 140px;
+      height: 28px;
+      margin-left: 2px;
+      text-align: left;
+      padding-left: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+    }
 
-        .start-btn {
-            display: flex; align-items: center; gap: 4px;
-            padding: 2px 6px; height: 22px; margin-right: 4px;
-            font-weight: bold; font-size: 13px; cursor: pointer;
-        }
-        .start-btn img { height: 16px; }
+    /* Active Window State in Taskbar */
+    .taskbar-item.active {
+      background: repeating-conic-gradient(#fff 0 25%, #000 0 50%) 50% / 2px 2px;
+      font-weight: bold;
+      box-shadow: inset 1px 1px #000, inset -1px -1px #fff;
+      background-color: #e0e0e0;
+    }
 
-        .task-list { flex-grow: 1; display: flex; gap: 3px; padding-left: 4px; overflow-x: auto; }
-        .task-list::-webkit-scrollbar { display: none; }
-        
-        .task-item {
-            min-width: 140px; max-width: 140px; height: 22px;
-            padding: 3px 5px; font-size: 12px;
-            display: flex; align-items: center; gap: 5px;
-            cursor: pointer;
-            white-space: nowrap; overflow: hidden;
-        }
-        .task-item.active { background: #e0e0e0; border: 2px solid #000; border-top-color: #808080; border-left-color: #808080; border-right-color: #fff; border-bottom-color: #fff; font-weight: bold; }
-        
-        .tray {
-            width: 70px; height: 22px;
-            border: 1px solid #808080; border-right-color: #fff; border-bottom-color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; margin-left: 4px;
-        }
+    /* START MENU POPUP */
+    #start-menu {
+      position: absolute;
+      bottom: 38px;
+      left: 2px;
+      width: 180px;
+      background: silver;
+      border: 2px solid;
+      border-color: #fff #000 #000 #fff; /* Bevel */
+      display: none;
+      z-index: 10000;
+      padding: 2px;
+    }
 
-        /* --- START MENU --- */
-        .start-menu {
-            position: fixed; bottom: 28px; left: 2px;
-            width: 180px; background: var(--win-gray);
-            border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000;
-            display: none; z-index: 10001;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        }
+    .start-item {
+      display: block;
+      padding: 8px 10px;
+      color: black;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .start-item:hover {
+      background: #000080;
+      color: white;
+    }
 
-        .start-side { 
-            width: 25px; 
-            background: #000080; 
-            color: white; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-end; 
-            padding-bottom: 5px;
-            writing-mode: vertical-lr; 
-            transform: rotate(180deg); 
-        }
-        
-        .menu-items { flex: 1; display: flex; flex-direction: column; }
-        .menu-item { padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .menu-item:hover { background: #000080; color: white; }
-        .menu-item img { width: 24px; height: 24px; }
+    /* =========================================
+       MOBILE OPTIMIZATIONS
+       ========================================= */
+    @media (max-width: 600px) {
+      /* On mobile, windows go FULL SCREEN automatically */
+      .window {
+        width: 100% !important;
+        height: calc(100% - 35px) !important; /* Minus taskbar */
+        top: 0 !important;
+        left: 0 !important;
+        margin: 0 !important;
+        border: none;
+        box-shadow: none;
+      }
+      
+      .window-body {
+        height: 100% !important;
+      }
 
-    </style>
+      .title-bar-controls button {
+        min-width: 25px; 
+        min-height: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div id="desktop">
-        
-        <div class="icon" id="icon-pc" style="top: 10px; left: 10px;" 
-             ondblclick="openWindow('win-pc', 'My Computer', 'computer')" 
-             ontouchend="handleTap(event, 'win-pc', 'My Computer', 'computer')">
-            <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png">
-            <span>My Computer</span>
-        </div>
-        
-        <div class="icon" id="icon-docs" style="top: 90px; left: 10px;" 
-             ondblclick="openWindow('win-docs', 'My Documents', 'folder')"
-             ontouchend="handleTap(event, 'win-docs', 'My Documents', 'folder')">
-            <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png">
-            <span>My Documents</span>
-        </div>
-
-        <div class="icon" id="icon-ie" style="top: 170px; left: 10px;"
-             ondblclick="openWindow('win-ie', 'Internet Explorer', 'ie')"
-             ontouchend="handleTap(event, 'win-ie', 'Internet Explorer', 'ie')">
-            <img src="https://win98icons.alexmeub.com/icons/png/msie2-2.png">
-            <span>Internet Explorer</span>
-        </div>
-        
-        <div class="icon" id="icon-trash" style="top: 250px; left: 10px;"
-             ontouchend="handleTap(event)">
-            <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png">
-            <span>Recycle Bin</span>
-        </div>
-
-        <div id="win-pc" class="window" style="top: 50px; left: 120px; width: 350px; height: 250px;">
-            <div class="title-bar">
-                <div class="title-text"><img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" width="16"> My Computer</div>
-                <div class="win-controls">
-                    <div class="win-btn" onclick="minimizeWindow('win-pc')">_</div>
-                    <div class="win-btn" onclick="maximizeWindow('win-pc')">□</div>
-                    <div class="win-btn" onclick="closeWindow('win-pc')">X</div>
-                </div>
-            </div>
-            <div class="win-body inset">
-                <div class="file-grid">
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/drive_disk-0.png">
-                        <span>3½ Floppy (A:)</span>
-                    </div>
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/hard_disk_drive-3.png">
-                        <span>(C:)</span>
-                    </div>
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/cd_drive-4.png">
-                        <span>(D:)</span>
-                    </div>
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/control_panel-1.png">
-                        <span>Control Panel</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="win-docs" class="window" style="top: 80px; left: 150px; width: 350px; height: 250px;">
-            <div class="title-bar">
-                <div class="title-text"><img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png" width="16"> My Documents</div>
-                <div class="win-controls">
-                    <div class="win-btn" onclick="minimizeWindow('win-docs')">_</div>
-                    <div class="win-btn" onclick="maximizeWindow('win-docs')">□</div>
-                    <div class="win-btn" onclick="closeWindow('win-docs')">X</div>
-                </div>
-            </div>
-            <div class="win-body inset">
-                <div class="file-grid">
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/text_file-0.png">
-                        <span>ReadMe.txt</span>
-                    </div>
-                    <div class="file-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/paint_file-2.png">
-                        <span>Untitled.bmp</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="win-ie" class="window" style="top: 30px; left: 30px; width: 400px; height: 300px;">
-            <div class="title-bar">
-                <div class="title-text"><img src="https://win98icons.alexmeub.com/icons/png/msie2-2.png" width="16"> Internet Explorer</div>
-                <div class="win-controls">
-                    <div class="win-btn" onclick="minimizeWindow('win-ie')">_</div>
-                    <div class="win-btn" onclick="maximizeWindow('win-ie')">□</div>
-                    <div class="win-btn" onclick="closeWindow('win-ie')">X</div>
-                </div>
-            </div>
-            <div class="win-body inset" style="padding:0; background:#fff; display:flex; flex-direction:column;">
-                <div style="background:#c0c0c0; padding:2px; border-bottom:1px solid #808080;">
-                    <span style="font-size:11px; margin-left:5px;">Address: <u>http://www.microsoft.com</u></span>
-                </div>
-                <div style="flex:1; padding:20px; font-family:serif;">
-                    <h1>Welcome to the Internet</h1>
-                    <p>It is now safe to turn off your computer.</p>
-                    <p style="color:blue; text-decoration:underline; cursor:pointer;">Click here to start.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="start-menu" id="start-menu">
-            <div style="display:flex;">
-                <div class="start-side"><span><b>Windows</b>98</span></div>
-                <div class="menu-items">
-                    <div class="menu-item" onclick="toggleStart()">
-                         <img src="https://win98icons.alexmeub.com/icons/png/windows_update_large-1.png"> Windows Update
-                    </div>
-                    <div class="divider"></div>
-                    <div class="menu-item" onclick="openWindow('win-pc', 'My Computer', 'computer'); toggleStart()">
-                         <img src="https://win98icons.alexmeub.com/icons/png/programs-2.png"> Programs
-                    </div>
-                    <div class="menu-item" onclick="openWindow('win-docs', 'My Documents', 'folder'); toggleStart()">
-                        <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png"> Documents
-                    </div>
-                    <div class="menu-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/settings_gear-4.png"> Settings
-                    </div>
-                    <div class="menu-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/find_file-1.png"> Find
-                    </div>
-                    <div class="menu-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/help_book_big-0.png"> Help
-                    </div>
-                    <div class="menu-item">
-                        <img src="https://win98icons.alexmeub.com/icons/png/application_hourglass_small-1.png"> Run...
-                    </div>
-                    <div class="divider"></div>
-                    <div class="menu-item" onclick="location.reload()">
-                        <img src="https://win98icons.alexmeub.com/icons/png/shut_down_normal-4.png"> Shut Down...
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="taskbar">
-            <div class="start-btn outset" onclick="toggleStart()">
-                <img src="https://win98icons.alexmeub.com/icons/png/windows-0.png"> Start
-            </div>
-            <div style="width:2px; height:20px; border-left:1px solid gray; border-right:1px solid white; margin:0 4px;"></div>
-            <div class="task-list" id="task-list">
-                </div>
-            <div class="tray inset" id="clock">
-                12:00 PM
-            </div>
-        </div>
-
+  <main id="desktop">
+    
+    <div class="desktop-icon" onclick="openApp('Notepad', 'app-notepad')">
+      <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" alt="Notepad">
+      <span>Notepad</span>
     </div>
 
-    <script>
-        // --- VARIABLES ---
-        let zIndex = 100;
-        let activeWindow = null;
-        // Check for touch
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    <div class="desktop-icon" onclick="openApp('My Computer', 'app-computer')">
+      <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="Computer">
+      <span>My Computer</span>
+    </div>
 
-        // --- WINDOW MANAGEMENT ---
-        function bringToFront(id) {
-            zIndex++;
-            const win = document.getElementById(id);
-            win.style.zIndex = zIndex;
-            
-            // Title Bars
-            document.querySelectorAll('.title-bar').forEach(tb => tb.classList.add('inactive'));
-            win.querySelector('.title-bar').classList.remove('inactive');
-            
-            // Taskbar
-            document.querySelectorAll('.task-item').forEach(ti => ti.classList.remove('active'));
-            const tab = document.getElementById('tab-' + id);
-            if(tab) tab.classList.add('active');
+    <div class="desktop-icon">
+      <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" alt="Trash">
+      <span>Recycle Bin</span>
+    </div>
 
-            activeWindow = id;
-        }
+  </main>
 
-        function openWindow(id, title, iconName) {
-            const win = document.getElementById(id);
-            if(win.style.display !== 'flex') {
-                win.style.display = 'flex';
-                win.dataset.minimized = "false"; 
-                addToTaskbar(id, title, iconName);
-                
-                // Mobile Centering
-                if(isTouchDevice && win.dataset.positioned !== "true") {
-                    win.style.top = "10%";
-                    win.style.left = "5%";
-                    win.style.width = "90%";
-                    win.dataset.positioned = "true";
-                }
-            }
-            bringToFront(id);
-        }
+  <div id="start-menu" class="window">
+    <div class="sidebar" style="background: linear-gradient(to bottom, #000080, #1084d0); width: 25px; position: absolute; left: 0; top: 0; bottom: 0; color: white; writing-mode: vertical-rl; text-align: center; font-weight: bold; font-size: 16px; padding-top: 10px;">
+      <span style="transform: rotate(180deg);">Windows 98</span>
+    </div>
+    <div style="margin-left: 28px;">
+      <a href="#" class="start-item" onclick="openApp('Notepad', 'app-notepad'); toggleStartMenu()">Programs</a>
+      <a href="#" class="start-item" onclick="alert('Searching...'); toggleStartMenu()">Find</a>
+      <hr style="margin: 2px;">
+      <a href="#" class="start-item" onclick="window.close()">Shut Down...</a>
+    </div>
+  </div>
 
-        function closeWindow(id) {
-            document.getElementById(id).style.display = 'none';
-            document.getElementById('tab-' + id)?.remove();
-        }
+  <div id="taskbar">
+    <button id="start-button" onclick="toggleStartMenu()">
+      <img src="https://win98icons.alexmeub.com/icons/png/windows-0.png" style="height: 18px;">
+      Start
+    </button>
+    <div style="height: 20px; width: 2px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 5px;"></div>
+    
+    <div id="taskbar-list" style="display: flex; gap: 2px;"></div>
+    
+    <div class="window-body" style="margin-left: auto; padding: 2px 8px; border: 2px solid; border-color: gray white white gray; font-size: 12px;">
+      <span id="clock">12:00 PM</span>
+    </div>
+  </div>
 
-        function minimizeWindow(id) {
-            const win = document.getElementById(id);
-            win.style.display = 'none';
-            win.dataset.minimized = "true";
-            document.getElementById('tab-' + id)?.classList.remove('active');
-        }
+  <template id="app-notepad">
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <ul class="tree-view" style="margin-bottom: 5px; height: 20px; display: flex; gap: 10px; list-style: none; padding: 0;">
+        <li><u>F</u>ile</li>
+        <li><u>E</u>dit</li>
+        <li><u>S</u>earch</li>
+        <li><u>H</u>elp</li>
+      </ul>
+      <textarea id="notepad-area" style="flex: 1; resize: none; border: 2px solid; border-color: gray white white gray; font-family: 'Courier New', monospace; padding: 5px; outline: none;"></textarea>
+    </div>
+  </template>
 
-        function maximizeWindow(id) {
-            const win = document.getElementById(id);
-            if(win.dataset.maximized === "true") {
-                win.style.top = win.dataset.oldTop;
-                win.style.left = win.dataset.oldLeft;
-                win.style.width = win.dataset.oldWidth;
-                win.style.height = win.dataset.oldHeight;
-                win.dataset.maximized = "false";
-            } else {
-                win.dataset.oldTop = win.style.top;
-                win.dataset.oldLeft = win.style.left;
-                win.dataset.oldWidth = win.style.width;
-                win.dataset.oldHeight = win.style.height;
-                win.style.top = "0px";
-                win.style.left = "0px";
-                win.style.width = "100%";
-                win.style.height = "calc(100% - 28px)"; 
-                win.dataset.maximized = "true";
-            }
-            bringToFront(id);
-        }
+  <template id="app-computer">
+    <div style="background: white; height: 100%; padding: 10px; border: 2px inset white;">
+      <p>3 Object(s)</p>
+      <div style="display: flex; gap: 20px;">
+        <div style="text-align: center;">
+          <img src="https://win98icons.alexmeub.com/icons/png/drive_c-1.png" width="32"><br>
+          <span>(C:)</span>
+        </div>
+        <div style="text-align: center;">
+          <img src="https://win98icons.alexmeub.com/icons/png/cd_drive-1.png" width="32"><br>
+          <span>(D:)</span>
+        </div>
+      </div>
+    </div>
+  </template>
 
-        // --- INTERACTION: DOUBLE TAP / TAP ---
-        let lastTap = 0;
+  <template id="window-template">
+    <div class="window" aria-label="window">
+      <div class="title-bar">
+        <div class="title-bar-text">Title</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="minimize-btn"></button>
+          <button aria-label="Maximize" class="maximize-btn"></button>
+          <button aria-label="Close" class="close-btn"></button>
+        </div>
+      </div>
+      <div class="window-body"></div>
+    </div>
+  </template>
+
+  <script>
+    let zIndex = 100;
+
+    // CLOCK LOGIC
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }, 1000);
+
+    // TOGGLE START MENU
+    function toggleStartMenu() {
+      const menu = document.getElementById('start-menu');
+      const btn = document.getElementById('start-button');
+      if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+        btn.classList.remove('active'); // mimic depressed button
+      } else {
+        menu.style.display = 'block';
+        btn.classList.add('active'); // mimic depressed button
+      }
+    }
+
+    // CLOSE START MENU WHEN CLICKING ELSEWHERE
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('start-menu');
+      const btn = document.getElementById('start-button');
+      if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+      }
+    });
+
+    // OPEN APPLICATION LOGIC
+    function openApp(title, templateId) {
+      const desktop = document.getElementById('desktop');
+      const template = document.getElementById('window-template');
+      const clone = template.content.cloneNode(true);
+      const win = clone.querySelector('.window');
+      
+      // Randomize position slightly
+      const offset = document.querySelectorAll('.window').length * 20;
+      win.style.top = (50 + offset) + 'px';
+      win.style.left = (50 + offset) + 'px';
+
+      // Set Title
+      win.querySelector('.title-bar-text').textContent = title;
+
+      // Inject Content
+      const contentTemplate = document.getElementById(templateId);
+      if (contentTemplate) {
+        win.querySelector('.window-body').innerHTML = contentTemplate.innerHTML;
         
-        function handleTap(e, winId, title, icon) {
-            // Icon Selection Logic (Visual only)
-            document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-            e.currentTarget.classList.add('selected');
-
-            // Double Tap Logic
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            
-            if (tapLength < 300 && tapLength > 0) {
-                e.preventDefault(); 
-                if(winId) openWindow(winId, title, icon);
-            }
-            lastTap = currentTime;
+        // SPECIAL LOGIC FOR NOTEPAD (LocalStorage)
+        if (templateId === 'app-notepad') {
+          const area = win.querySelector('textarea');
+          area.value = localStorage.getItem('win98-notes') || "Welcome to Windows 98 Mobile!\n\nType here and I will save it automatically.";
+          area.addEventListener('input', (e) => localStorage.setItem('win98-notes', e.target.value));
         }
-        
-        // Deselect icons on background click
-        document.getElementById('desktop').addEventListener('click', (e) => {
-            if(e.target.id === 'desktop') {
-                document.querySelectorAll('.icon').forEach(i => i.classList.remove('selected'));
-            }
-        });
+      }
 
-        // --- TASKBAR ---
-        function addToTaskbar(id, title, iconName) {
-            if(document.getElementById('tab-' + id)) return;
+      // Dragging & Focus
+      win.addEventListener('mousedown', () => bringToFront(win));
+      win.addEventListener('touchstart', () => bringToFront(win));
+      makeDraggable(win);
 
-            const list = document.getElementById('task-list');
-            const tab = document.createElement('div');
-            tab.className = 'task-item outset';
-            tab.id = 'tab-' + id;
-            
-            let iconUrl = "https://win98icons.alexmeub.com/icons/png/application-0.png";
-            if(iconName === 'computer') iconUrl = "https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png";
-            if(iconName === 'folder') iconUrl = "https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png";
-            if(iconName === 'ie') iconUrl = "https://win98icons.alexmeub.com/icons/png/msie2-2.png";
-
-            tab.innerHTML = `<img src="${iconUrl}" width="16"> ${title}`;
-            
-            tab.onclick = () => {
-                const win = document.getElementById(id);
-                if(win.dataset.minimized === "true" || win.style.display === 'none') {
-                    win.style.display = 'flex';
-                    win.dataset.minimized = "false";
-                    bringToFront(id);
-                } else if(activeWindow === id) {
-                    minimizeWindow(id);
-                } else {
-                    bringToFront(id);
-                }
-            };
-            list.appendChild(tab);
+      // Controls
+      win.querySelector('.close-btn').onclick = () => { win.remove(); removeTaskbarItem(win); };
+      win.querySelector('.minimize-btn').onclick = () => { win.style.display = 'none'; };
+      
+      // Maximize Logic
+      win.querySelector('.maximize-btn').onclick = () => {
+        if(win.dataset.maximized === "true") {
+          win.style.width = win.dataset.oldWidth;
+          win.style.height = win.dataset.oldHeight;
+          win.style.top = win.dataset.oldTop;
+          win.style.left = win.dataset.oldLeft;
+          win.dataset.maximized = "false";
+        } else {
+          win.dataset.oldWidth = win.style.width || "300px";
+          win.dataset.oldHeight = win.style.height || "auto";
+          win.dataset.oldTop = win.style.top;
+          win.dataset.oldLeft = win.style.left;
+          
+          win.style.width = "100%";
+          win.style.height = "calc(100% - 35px)";
+          win.style.top = "0";
+          win.style.left = "0";
+          win.dataset.maximized = "true";
         }
+      };
 
-        // --- START MENU ---
-        function toggleStart() {
-            const menu = document.getElementById('start-menu');
-            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
-            if(menu.style.display === 'flex') menu.style.zIndex = zIndex + 999;
+      desktop.appendChild(win);
+      bringToFront(win);
+      addTaskbarItem(win, title);
+    }
+
+    function bringToFront(win) {
+      zIndex++;
+      win.style.zIndex = zIndex;
+      // Also highlight taskbar item
+      document.querySelectorAll('.taskbar-item').forEach(btn => btn.classList.remove('active'));
+      if(win.taskbarBtn) win.taskbarBtn.classList.add('active');
+    }
+
+    // DRAG LOGIC (Works on Mobile Touch + Desktop Mouse)
+    function makeDraggable(elmnt) {
+      let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+      const header = elmnt.querySelector('.title-bar');
+
+      if (header) {
+        header.onmousedown = dragMouseDown;
+        header.ontouchstart = dragTouchStart;
+      }
+
+      function dragMouseDown(e) {
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+        bringToFront(elmnt);
+      }
+
+      function dragTouchStart(e) {
+        pos3 = e.touches[0].clientX;
+        pos4 = e.touches[0].clientY;
+        document.ontouchend = closeDragElement;
+        document.ontouchmove = elementTouchDrag;
+        bringToFront(elmnt);
+      }
+
+      function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+      }
+
+      function elementTouchDrag(e) {
+        pos1 = pos3 - e.touches[0].clientX;
+        pos2 = pos4 - e.touches[0].clientY;
+        pos3 = e.touches[0].clientX;
+        pos4 = e.touches[0].clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+      }
+
+      function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+      }
+    }
+
+    // TASKBAR LOGIC
+    function addTaskbarItem(win, title) {
+      const list = document.getElementById('taskbar-list');
+      const btn = document.createElement('button');
+      btn.className = 'taskbar-item active';
+      btn.innerHTML = `<img src="https://win98icons.alexmeub.com/icons/png/programs_program-0.png" height="16" style="margin-right:4px;"> <b>${title}</b>`;
+      
+      btn.onclick = () => {
+        if (win.style.display === 'none') {
+          win.style.display = 'flex';
+          bringToFront(win);
+        } else if (win.style.zIndex < zIndex) {
+          bringToFront(win);
+        } else {
+          win.style.display = 'none';
+          btn.classList.remove('active');
         }
+      };
 
-        function handleGlobalClick(e) {
-             if (!e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
-                document.getElementById('start-menu').style.display = 'none';
-            }
-        }
-        window.addEventListener('click', handleGlobalClick);
-        window.addEventListener('touchstart', handleGlobalClick, {passive: true});
+      win.taskbarBtn = btn; // Link button to window object
+      list.appendChild(btn);
+    }
 
-        // --- DRAG ENGINE (Unified) ---
-        function makeDraggable(el, handle) {
-            let isDragging = false;
-            let startX, startY, initialLeft, initialTop;
-
-            function dragStart(e) {
-                if (e.target.classList.contains('win-btn')) return;
-                if(el.classList.contains('window')) bringToFront(el.id);
-                
-                if (e.type === "touchstart") {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                } else {
-                    e.preventDefault();
-                    startX = e.clientX;
-                    startY = e.clientY;
-                }
-
-                initialLeft = el.offsetLeft;
-                initialTop = el.offsetTop;
-                isDragging = true;
-            }
-
-            function dragMove(e) {
-                if (!isDragging) return;
-                
-                let clientX, clientY;
-                if (e.type === "touchmove") {
-                    e.preventDefault(); 
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    e.preventDefault();
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                el.style.left = (initialLeft + dx) + "px";
-                el.style.top = (initialTop + dy) + "px";
-            }
-
-            function dragEnd() { isDragging = false; }
-
-            handle.addEventListener("mousedown", dragStart);
-            document.addEventListener("mousemove", dragMove);
-            document.addEventListener("mouseup", dragEnd);
-
-            handle.addEventListener("touchstart", dragStart, { passive: false });
-            document.addEventListener("touchmove", dragMove, { passive: false });
-            document.addEventListener("touchend", dragEnd);
-        }
-
-        document.querySelectorAll('.window').forEach(win => {
-            makeDraggable(win, win.querySelector('.title-bar'));
-            win.addEventListener('mousedown', () => bringToFront(win.id));
-            win.addEventListener('touchstart', () => bringToFront(win.id), {passive: true});
-        });
-
-        document.querySelectorAll('.icon').forEach(icon => {
-            makeDraggable(icon, icon);
-        });
-
-        // --- CLOCK ---
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-    </script>
+    function removeTaskbarItem(win) {
+      if(win.taskbarBtn) win.taskbarBtn.remove();
+    }
+  </script>
 </body>
 </html>
