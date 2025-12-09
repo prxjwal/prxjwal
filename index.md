@@ -1,3 +1,5 @@
+Here is the clean Windows 98 simulation code. I have removed the BIOS boot sequence, so it loads instantly into the desktop environment.
+Copy and paste this entire block into your index.html.
 ---
 layout: null
 title: prxjwal | Windows 98
@@ -26,30 +28,17 @@ title: prxjwal | Windows 98
         
         body {
             margin: 0; padding: 0;
-            background-color: black; /* Starts Black for BIOS */
+            background-color: var(--bg-teal); /* Instant Teal Background */
             font-family: 'Segoe UI', Tahoma, sans-serif;
             overflow: hidden;
             height: 100vh;
             user-select: none;
-            cursor: default; /* Arrow cursor */
+            cursor: default;
         }
 
-        /* --- 1. BIOS BOOT SCREEN --- */
-        #bios-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; color: #c0c0c0;
-            font-family: 'VT323', monospace;
-            padding: 40px;
-            font-size: 20px;
-            z-index: 99999;
-            display: block;
-        }
-
-        /* --- 2. DESKTOP ENVIRONMENT --- */
+        /* --- DESKTOP ENVIRONMENT --- */
         #desktop-environment {
-            display: none; /* Hidden until boot finishes */
             width: 100%; height: 100%;
-            background-color: var(--bg-teal);
             position: relative;
         }
 
@@ -57,7 +46,7 @@ title: prxjwal | Windows 98
         .outset { box-shadow: inset -1px -1px #000, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf; background: var(--win-gray); }
         .inset  { box-shadow: inset -1px -1px #fff, inset 1px 1px #000, inset -2px -2px #dfdfdf, inset 2px 2px #808080; background: #fff; }
 
-        /* --- 3. ICONS --- */
+        /* --- ICONS --- */
         .icon {
             position: absolute; /* Absolute for dragging */
             width: 75px;
@@ -71,7 +60,7 @@ title: prxjwal | Windows 98
         .icon img { width: 32px; height: 32px; margin-bottom: 5px; image-rendering: pixelated; }
         .icon span { padding: 2px; text-shadow: 1px 1px 0 black; }
 
-        /* --- 4. WINDOWS --- */
+        /* --- WINDOWS --- */
         .window {
             position: absolute;
             background: var(--win-gray);
@@ -102,7 +91,7 @@ title: prxjwal | Windows 98
 
         .win-body { flex: 1; overflow: auto; background: var(--win-light); color: black; margin-top: 2px; }
 
-        /* --- 5. TASKBAR --- */
+        /* --- TASKBAR --- */
         .taskbar {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 28px;
             background: var(--win-gray);
@@ -135,7 +124,7 @@ title: prxjwal | Windows 98
             font-size: 12px; margin-left: 4px;
         }
 
-        /* --- 6. START MENU --- */
+        /* --- START MENU --- */
         .start-menu {
             position: fixed; bottom: 28px; left: 2px;
             width: 180px; background: var(--win-gray);
@@ -159,21 +148,6 @@ title: prxjwal | Windows 98
     </style>
 </head>
 <body>
-
-    <div id="bios-screen">
-        <div>AMIBIOS (C) 1996 American Megatrends Inc.,</div>
-        <div>Prxjwal-PC BIOS Version 1.0</div>
-        <br>
-        <div>CPU: Intel Pentium III 800 MHz</div>
-        <div>Memory Test: <span id="mem-test">0</span> KB OK</div>
-        <br>
-        <div id="bios-details" style="display:none;">
-            <div>Detecting Primary Master ... ZaryaOS_Drive (C:)</div>
-            <div>Detecting Primary Slave ... CD-ROM</div>
-            <br>
-            <div>Booting from C:\>_</div>
-        </div>
-    </div>
 
     <div id="desktop-environment">
         
@@ -201,6 +175,7 @@ title: prxjwal | Windows 98
             </div>
             <div class="win-body inset" style="background:white; padding: 10px;">
                 <p>System Root (C:)</p>
+                <p><i>(Double-click icons to open apps)</i></p>
             </div>
         </div>
 
@@ -222,6 +197,9 @@ title: prxjwal | Windows 98
             <div style="display:flex;">
                 <div class="start-side"><span><b>Windows</b>98</span></div>
                 <div class="menu-items">
+                    <div class="menu-item" onclick="openWindow('win-pc', 'My Computer', 'computer'); toggleStart()">
+                         <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" width="24"> Programs
+                    </div>
                     <div class="menu-item">
                         <img src="https://win98icons.alexmeub.com/icons/png/update-0.png" width="24"> Windows Update
                     </div>
@@ -248,34 +226,10 @@ title: prxjwal | Windows 98
     </div>
 
     <script>
-        // --- 1. BIOS SEQUENCE ---
-        const memTest = document.getElementById('mem-test');
-        let mem = 0;
-        const totalMem = 262144; // 256MB
-
-        const bootInterval = setInterval(() => {
-            mem += 4096;
-            if(mem >= totalMem) {
-                mem = totalMem;
-                clearInterval(bootInterval);
-                memTest.innerText = mem;
-                document.getElementById('bios-details').style.display = 'block';
-                
-                // Finish Boot
-                setTimeout(() => {
-                    document.getElementById('bios-screen').style.display = 'none';
-                    document.getElementById('desktop-environment').style.display = 'block';
-                    // Play startup sound if possible (browsers block this usually, so we skip logic)
-                }, 2000);
-            } else {
-                memTest.innerText = mem;
-            }
-        }, 10);
-
-
-        // --- 2. WINDOW MANAGER ENGINE ---
+        // --- 1. WINDOW MANAGER ENGINE ---
         let zIndex = 100;
         let activeWindow = null;
+        // Check if user is on mobile
         let isMobile = window.innerWidth <= 768;
 
         function bringToFront(id) {
@@ -340,13 +294,13 @@ title: prxjwal | Windows 98
                 win.style.top = "0px";
                 win.style.left = "0px";
                 win.style.width = "100%";
-                win.style.height = "calc(100% - 28px)"; // Minus taskbar
+                win.style.height = "calc(100% - 28px)"; // Minus taskbar height
                 win.dataset.maximized = "true";
             }
             bringToFront(id);
         }
 
-        // --- 3. TASKBAR ENGINE ---
+        // --- 2. TASKBAR ENGINE ---
         function addToTaskbar(id, title, iconName) {
             if(document.getElementById('tab-' + id)) return;
 
@@ -355,8 +309,8 @@ title: prxjwal | Windows 98
             tab.className = 'task-item outset';
             tab.id = 'tab-' + id;
             
-            // Map icon name to url (simplified)
-            let iconUrl = "https://win98icons.alexmeub.com/icons/png/application-0.png"; // Default
+            // Map icon name to url
+            let iconUrl = "https://win98icons.alexmeub.com/icons/png/application-0.png";
             if(iconName === 'computer') iconUrl = "https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png";
             if(iconName === 'folder') iconUrl = "https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png";
 
@@ -377,7 +331,7 @@ title: prxjwal | Windows 98
             list.appendChild(tab);
         }
 
-        // --- 4. START MENU LOGIC ---
+        // --- 3. START MENU LOGIC ---
         function toggleStart() {
             const menu = document.getElementById('start-menu');
             menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
@@ -390,9 +344,9 @@ title: prxjwal | Windows 98
             }
         }
 
-        // --- 5. DRAG ENGINE (Windows & Icons) ---
+        // --- 4. DRAG ENGINE (Windows & Icons) ---
         function makeDraggable(el, handle) {
-            if(isMobile) return; 
+            if(isMobile) return; // Disable dragging on phones
             
             handle.onmousedown = function(e) {
                 e.preventDefault();
@@ -421,7 +375,6 @@ title: prxjwal | Windows 98
         // Initialize Draggables
         document.querySelectorAll('.window').forEach(win => {
             makeDraggable(win, win.querySelector('.title-bar'));
-            // Window Click brings to front
             win.addEventListener('mousedown', () => bringToFront(win.id));
         });
 
@@ -429,12 +382,15 @@ title: prxjwal | Windows 98
             makeDraggable(icon, icon);
         });
 
-        // --- 6. CLOCK ---
-        setInterval(() => {
+        // --- 5. CLOCK ---
+        function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }, 1000);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
     </script>
 </body>
 </html>
+
