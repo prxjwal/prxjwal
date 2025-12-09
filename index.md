@@ -26,7 +26,7 @@ title: prxjwal | Windows 98
         
         body {
             margin: 0; padding: 0;
-            background-color: var(--bg-teal); /* Instant Teal Background */
+            background-color: var(--bg-teal); /* INSTANT TEAL */
             font-family: 'Segoe UI', Tahoma, sans-serif;
             overflow: hidden;
             height: 100vh;
@@ -38,6 +38,7 @@ title: prxjwal | Windows 98
         #desktop-environment {
             width: 100%; height: 100%;
             position: relative;
+            display: block; /* Ensures visibility immediately */
         }
 
         /* UTILS: Bevels */
@@ -46,7 +47,7 @@ title: prxjwal | Windows 98
 
         /* --- ICONS --- */
         .icon {
-            position: absolute; /* Absolute for dragging */
+            position: absolute;
             width: 75px;
             display: flex; flex-direction: column; align-items: center;
             text-align: center; color: white;
@@ -173,7 +174,6 @@ title: prxjwal | Windows 98
             </div>
             <div class="win-body inset" style="background:white; padding: 10px;">
                 <p>System Root (C:)</p>
-                <p><i>(Double-click icons to open apps)</i></p>
             </div>
         </div>
 
@@ -224,10 +224,9 @@ title: prxjwal | Windows 98
     </div>
 
     <script>
-        // --- 1. WINDOW MANAGER ENGINE ---
+        // --- WINDOW MANAGER ENGINE ---
         let zIndex = 100;
         let activeWindow = null;
-        // Check if user is on mobile
         let isMobile = window.innerWidth <= 768;
 
         function bringToFront(id) {
@@ -268,7 +267,6 @@ title: prxjwal | Windows 98
             win.style.display = 'none';
             win.dataset.minimized = "true";
             
-            // Deactivate tab visual
             const tab = document.getElementById('tab-' + id);
             if(tab) tab.classList.remove('active');
         }
@@ -292,13 +290,13 @@ title: prxjwal | Windows 98
                 win.style.top = "0px";
                 win.style.left = "0px";
                 win.style.width = "100%";
-                win.style.height = "calc(100% - 28px)"; // Minus taskbar height
+                win.style.height = "calc(100% - 28px)"; 
                 win.dataset.maximized = "true";
             }
             bringToFront(id);
         }
 
-        // --- 2. TASKBAR ENGINE ---
+        // --- TASKBAR ENGINE ---
         function addToTaskbar(id, title, iconName) {
             if(document.getElementById('tab-' + id)) return;
 
@@ -307,7 +305,6 @@ title: prxjwal | Windows 98
             tab.className = 'task-item outset';
             tab.id = 'tab-' + id;
             
-            // Map icon name to url
             let iconUrl = "https://win98icons.alexmeub.com/icons/png/application-0.png";
             if(iconName === 'computer') iconUrl = "https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png";
             if(iconName === 'folder') iconUrl = "https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png";
@@ -329,26 +326,24 @@ title: prxjwal | Windows 98
             list.appendChild(tab);
         }
 
-        // --- 3. START MENU LOGIC ---
+        // --- START MENU LOGIC ---
         function toggleStart() {
             const menu = document.getElementById('start-menu');
             menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
         }
         
-        // Click outside to close start menu
         window.onclick = function(e) {
             if (!e.target.closest('.start-menu') && !e.target.closest('.start-btn')) {
                 document.getElementById('start-menu').style.display = 'none';
             }
         }
 
-        // --- 4. DRAG ENGINE (Windows & Icons) ---
+        // --- DRAG ENGINE ---
         function makeDraggable(el, handle) {
-            if(isMobile) return; // Disable dragging on phones
+            if(isMobile) return; 
             
             handle.onmousedown = function(e) {
                 e.preventDefault();
-                // If it's a window, bring to front
                 if(el.classList.contains('window')) bringToFront(el.id);
 
                 let startX = e.clientX;
@@ -370,7 +365,6 @@ title: prxjwal | Windows 98
             };
         }
 
-        // Initialize Draggables
         document.querySelectorAll('.window').forEach(win => {
             makeDraggable(win, win.querySelector('.title-bar'));
             win.addEventListener('mousedown', () => bringToFront(win.id));
@@ -380,7 +374,7 @@ title: prxjwal | Windows 98
             makeDraggable(icon, icon);
         });
 
-        // --- 5. CLOCK ---
+        // --- CLOCK ---
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
