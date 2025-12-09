@@ -1,7 +1,3 @@
----
-layout: null
-title: prxjwal | Windows 98
----
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,8 +126,24 @@ title: prxjwal | Windows 98
             border: 2px solid #fff; border-right-color: #000; border-bottom-color: #000;
             display: none; z-index: 10001;
         }
-        .start-side { width: 25px; background: #000080; color: white; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; }
-        .start-side span { transform: rotate(-90deg); white-space: nowrap; font-weight: bold; font-size: 16px; }
+
+        /* [FIXED] Updated Sidebar CSS for perfect alignment */
+        .start-side { 
+            width: 25px; 
+            background: #000080; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            padding-bottom: 5px;
+            writing-mode: vertical-lr; /* Vertical text mode */
+            transform: rotate(180deg); /* Flip bottom-to-top */
+        }
+        .start-side span { 
+            font-weight: bold; 
+            font-size: 16px; 
+            /* Transformations removed as they are handled by parent now */
+        }
         
         .menu-items { flex: 1; display: flex; flex-direction: column; }
         .menu-item { padding: 8px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
