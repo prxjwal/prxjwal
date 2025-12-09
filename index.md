@@ -1,5 +1,3 @@
-Here is the clean Windows 98 simulation code. I have removed the BIOS boot sequence, so it loads instantly into the desktop environment.
-Copy and paste this entire block into your index.html.
 ---
 layout: null
 title: prxjwal | Windows 98
@@ -393,4 +391,3 @@ title: prxjwal | Windows 98
     </script>
 </body>
 </html>
-
