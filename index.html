@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Windows 98</title>
+    <title>Windows 98 - Winamp Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/98.css">
     
     <style>
@@ -13,28 +13,27 @@
         body {
             background-color: #008080;
             margin: 0;
-            overflow: hidden; /* Prevents "pull to refresh" on mobile */
+            overflow: hidden; /* Locks the app so you can't scroll past the desktop */
             font-family: 'Pixelated MS Sans Serif', Arial, sans-serif;
             user-select: none;
             -webkit-user-select: none;
             
-            /* Mobile Safe Area Padding */
+            /* SAFE AREA: Respects the notch/dynamic island */
             padding-top: env(safe-area-inset-top);
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
-            /* We don't pad bottom here, we handle taskbar separately */
         }
 
         #desktop-area { 
             width: 100%; 
-            /* Height subtracts taskbar (28px) and the bottom safe area */
+            /* Height = Viewport - Taskbar - Safe Areas */
             height: calc(100vh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); 
             position: relative; 
             z-index: 1; 
         }
 
         .desktop-icon {
-            width: 80px; /* Slightly larger touch target */
+            width: 80px; /* Wider touch target */
             position: absolute; 
             text-align: center; color: white;
             font-size: 14px; 
@@ -42,7 +41,7 @@
             display: flex; flex-direction: column;
             align-items: center; 
             border: 1px solid transparent; 
-            touch-action: none; /* Prevents scrolling when touching icons */
+            touch-action: manipulation; /* Improves touch response */
             padding: 5px;
         }
         .desktop-icon:active { background: rgba(0, 0, 128, 0.5); border: 1px dotted yellow; }
@@ -54,7 +53,7 @@
             background: silver; border-top: 2px solid white; display: flex;
             align-items: center; padding: 2px; z-index: 10000;
             
-            /* Sit ABOVE the iOS Home Bar / Android Nav Bar */
+            /* SAFE AREA: Pushes taskbar above the iOS Home Swipe Bar */
             bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
@@ -66,7 +65,7 @@
         
         #taskbar-list { flex-grow: 1; display: flex; padding-left: 5px; gap: 2px; overflow: hidden; }
         .taskbar-item {
-            min-width: 100px; max-width: 150px; padding: 2px 5px; white-space: nowrap;
+            min-width: 80px; max-width: 150px; padding: 2px 5px; white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis; font-size: 12px; height: 22px;
             display: flex; align-items: center; cursor: pointer;
         }
@@ -77,7 +76,7 @@
 
         #start-menu {
             position: fixed; 
-            /* Push menu up by taskbar height + safe area */
+            /* Start menu respects bottom safe area too */
             bottom: calc(28px + env(safe-area-inset-bottom)); 
             left: env(safe-area-inset-left); 
             width: 200px; z-index: 99999;
@@ -91,21 +90,20 @@
             position: absolute; bottom: 15px; left: 22px;
         }
         .start-items { flex-grow: 1; padding: 0 2px; display: flex; flex-direction: column; gap: 2px; }
-        .start-item { padding: 8px 10px; /* Bigger touch target */ display: flex; align-items: center; cursor: pointer; font-size: 14px; }
+        .start-item { padding: 8px 10px; display: flex; align-items: center; cursor: pointer; font-size: 14px; }
         .start-item:hover { background: #000080; color: white; }
         .start-item img { margin-right: 8px; width: 24px; height: 24px; object-fit: contain; }
 
         .window {
             position: absolute; display: none; flex-direction: column; background: silver;
             padding: 2px; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff;
-            /* Max width for mobile */
-            max-width: 95vw;
+            max-width: 95vw; /* Prevent windows from being wider than mobile screen */
         }
         .window-body { flex-grow: 1; display: flex; flex-direction: column; }
 
 
         /* ========================================= */
-        /* ===   FIXED WINAMP STYLES (STRICT)    === */
+        /* ===   FIXED WINAMP STYLES (RESPONSIVE) === */
         /* ========================================= */
         
         #win-winamp {
@@ -116,7 +114,7 @@
             display: none;
             flex-direction: column;
             
-            /* DEFAULT SCALING (Desktop) */
+            /* DESKTOP SCALE: 1.6x looks good on big screens */
             transform: scale(1.6); 
             transform-origin: top left;
             transition: transform 0.1s steps(2);
@@ -135,14 +133,11 @@
             transform: scale(2.5) !important; 
         }
 
-        /* MOBILE RESPONSIVE SCALING */
+        /* MOBILE OVERRIDE: Shrink Winamp if screen is small */
         @media (max-width: 600px) {
             #win-winamp {
-                /* Scale down slightly on phones so it doesn't bleed off screen */
-                transform: scale(1.3);
-            }
-            #win-winamp.winamp-double {
-                transform: scale(1.3) !important; /* Disable double size on small phones */
+                /* 1.25x fits a 375px wide iPhone screen nicely */
+                transform: scale(1.25) !important;
             }
         }
 
@@ -151,143 +146,41 @@
             outline: none;
         }
 
-        .wa-title-bar {
-            height: 14px;
-            background: #202020;
-            display: flex;
-            cursor: default;
-            position: relative;
-            margin-bottom: 0;
-            border-bottom: 1px solid black;
-        }
-
-        .wa-grip {
-            flex-grow: 1;
-            margin: 2px 2px 0 2px;
-            height: 10px;
-            background: repeating-linear-gradient(90deg, #3a3a3a 0px, #3a3a3a 1px, #000 1px, #000 2px);
-            position: relative;
-        }
-
-        .wa-title-text {
-            position: absolute;
-            top: -2px; left: 4px;
-            font-family: monospace;
-            font-size: 9px;
-            color: #d0d0d0;
-            background: #202020;
-            padding-right: 4px;
-            pointer-events: none;
-        }
-
-        #win-winamp .wa-mini-btn {
-            width: 9px; height: 9px; 
-            background: silver; 
-            border: 1px outset white;
-            font-size: 8px; line-height: 7px; 
-            text-align: center; cursor: pointer;
-            margin-top: 3px; margin-right: 2px;
-            padding: 0; min-width: 0; min-height: 0;
-            box-shadow: none; border-radius: 0;
-            color: black;
-        }
+        /* Standard Winamp CSS (Unchanged) */
+        .wa-title-bar { height: 14px; background: #202020; display: flex; cursor: default; position: relative; margin-bottom: 0; border-bottom: 1px solid black; }
+        .wa-grip { flex-grow: 1; margin: 2px 2px 0 2px; height: 10px; background: repeating-linear-gradient(90deg, #3a3a3a 0px, #3a3a3a 1px, #000 1px, #000 2px); position: relative; }
+        .wa-title-text { position: absolute; top: -2px; left: 4px; font-family: monospace; font-size: 9px; color: #d0d0d0; background: #202020; padding-right: 4px; pointer-events: none; }
+        #win-winamp .wa-mini-btn { width: 9px; height: 9px; background: silver; border: 1px outset white; font-size: 8px; line-height: 7px; text-align: center; cursor: pointer; margin-top: 3px; margin-right: 2px; padding: 0; min-width: 0; min-height: 0; box-shadow: none; border-radius: 0; color: black; }
         #win-winamp .wa-mini-btn:active { border: 1px inset white; }
-
-        .winamp-face {
-            padding: 4px 5px 5px 5px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 42px 14px 14px 20px;
-            gap: 2px;
-        }
-
-        .wa-screen-container {
-            grid-column: 1 / span 2;
-            background: #111;
-            border: 1px solid #484848;
-            border-right: 1px solid #5d5d5d;
-            border-bottom: 1px solid #5d5d5d;
-            display: flex;
-            height: 100%;
-        }
-
-        .wa-vis-box {
-            width: 76px; height: 100%; border-right: 1px solid #333; background: black; cursor: pointer;
-        }
-
-        .wa-info-box {
-            flex-grow: 1; display: flex; flex-direction: column; padding: 2px 4px; overflow: hidden; justify-content: center;
-        }
-
+        .winamp-face { padding: 4px 5px 5px 5px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 42px 14px 14px 20px; gap: 2px; }
+        .wa-screen-container { grid-column: 1 / span 2; background: #111; border: 1px solid #484848; border-right: 1px solid #5d5d5d; border-bottom: 1px solid #5d5d5d; display: flex; height: 100%; }
+        .wa-vis-box { width: 76px; height: 100%; border-right: 1px solid #333; background: black; cursor: pointer; }
+        .wa-info-box { flex-grow: 1; display: flex; flex-direction: column; padding: 2px 4px; overflow: hidden; justify-content: center; }
         .wa-time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
         .wa-timer { font-family: monospace; font-size: 18px; color: #00E000; letter-spacing: 1px; line-height: 18px; }
         .wa-kbps { font-size: 9px; color: #00E000; font-family: Arial; }
-        
-        .wa-marquee {
-            white-space: nowrap; font-family: monospace; font-size: 9px; color: #00E000;
-            overflow: hidden; width: 100%; position: relative;
-        }
+        .wa-marquee { white-space: nowrap; font-family: monospace; font-size: 9px; color: #00E000; overflow: hidden; width: 100%; position: relative; }
         .wa-marquee span { display: inline-block; animation: marquee 10s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* Sliders Row */
-        .wa-sliders-row {
-            grid-column: 1 / span 2; display: flex; gap: 5px; align-items: center;
-        }
-        
+        .wa-sliders-row { grid-column: 1 / span 2; display: flex; gap: 5px; align-items: center; }
         .wa-slider-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100%; justify-content: center; }
         .wa-label { font-size: 8px; font-family: Arial; color: silver; margin-bottom: -4px; z-index: 1;}
-
-        /* EQ Button */
-        #wa-eq-btn {
-            width: 20px; 
-            height: 14px; 
-            background: silver; 
-            border: 1px outset white;
-            font-size: 8px; 
-            text-align: center; 
-            line-height: 13px; 
-            cursor: pointer;
-            margin-top: 5px; 
-            color: #555; 
-            font-weight: bold;
-        }
+        #wa-eq-btn { width: 20px; height: 14px; background: silver; border: 1px outset white; font-size: 8px; text-align: center; line-height: 13px; cursor: pointer; margin-top: 5px; color: #555; font-weight: bold; }
         #wa-eq-btn.active { border: 1px inset white; background: #00E000; color: black; box-shadow: 0 0 2px #00ff00; }
-
-        #win-winamp input[type=range] {
-            -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; border: none; box-shadow: none;
-        }
-        #win-winamp input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: #111; border-bottom: 1px solid #555;
-        }
-        #win-winamp input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 9px; width: 11px;
-            background: silver; border: 1px outset white; margin-top: -3px; cursor: pointer; border-radius: 0;
-        }
-
+        #win-winamp input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; border: none; box-shadow: none; }
+        #win-winamp input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #111; border-bottom: 1px solid #555; }
+        #win-winamp input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 9px; width: 11px; background: silver; border: 1px outset white; margin-top: -3px; cursor: pointer; border-radius: 0; }
         .wa-progress-row { grid-column: 1 / span 2; padding-top: 4px; }
-        .wa-progress-bg {
-            width: 100%; height: 8px; background: #000; border-bottom: 1px solid #444; position: relative; cursor: pointer;
-        }
+        .wa-progress-bg { width: 100%; height: 8px; background: #000; border-bottom: 1px solid #444; position: relative; cursor: pointer; }
         .wa-progress-fill { height: 100%; background: #00E000; width: 0%; }
-        .wa-progress-knob {
-            width: 10px; height: 8px; background: silver; border: 1px outset white;
-            position: absolute; top: 0; margin-left: -5px; pointer-events: none;
-        }
-
-        .wa-controls-row {
-            grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 2px;
-        }
-
-        #win-winamp button.wa-ctrl-btn {
-            background: silver; border: 1px outset white; color: black; font-size: 9px; height: 18px; width: 23px;
-            padding: 0; margin: 0; min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: center;
-            box-shadow: none; border-radius: 0;
-        }
+        .wa-progress-knob { width: 10px; height: 8px; background: silver; border: 1px outset white; position: absolute; top: 0; margin-left: -5px; pointer-events: none; }
+        .wa-controls-row { grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 2px; }
+        #win-winamp button.wa-ctrl-btn { background: silver; border: 1px outset white; color: black; font-size: 9px; height: 18px; width: 23px; padding: 0; margin: 0; min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: center; box-shadow: none; border-radius: 0; }
         #win-winamp button.wa-ctrl-btn:active { border: 1px inset white; background: #a0a0a0; transform: translateY(1px); }
         #win-winamp button.wa-play-btn { width: 28px; }
         .wa-credits { font-size: 8px; color: #666; font-family: Arial; margin-left: auto; align-self: center; }
-
+        
+        /* Icons */
         .icon-prev::after { content: "⏮"; font-size: 9px; }
         .icon-play::after { content: "▶"; font-size: 9px; }
         .icon-pause::after { content: "⏸"; font-size: 9px; }
@@ -302,38 +195,52 @@
 
     <div id="desktop-area">
         <div class="desktop-icon" style="top: 20px; left: 20px;" 
-             ondblclick="os.openWindow('computer')"
-             ontouchend="os.handleDoubleTap(event, 'computer')">
+             ondblclick="os.openWindow('computer')" ontouchend="os.handleDoubleTap(event, 'computer')">
             <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"><span>My Computer</span>
         </div>
         
         <div class="desktop-icon" style="top: 120px; left: 20px;" 
-             ondblclick="os.openWindow('recycle')"
-             ontouchend="os.handleDoubleTap(event, 'recycle')">
+             ondblclick="os.openWindow('recycle')" ontouchend="os.handleDoubleTap(event, 'recycle')">
             <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png"><span>Recycle Bin</span>
         </div>
         
         <div class="desktop-icon" style="top: 220px; left: 20px;" 
-             ondblclick="os.openWindow('notepad')"
-             ontouchend="os.handleDoubleTap(event, 'notepad')">
+             ondblclick="os.openWindow('notepad')" ontouchend="os.handleDoubleTap(event, 'notepad')">
             <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"><span>Notepad</span>
         </div>
         
         <div class="desktop-icon" style="top: 20px; left: 120px;" 
-             ondblclick="os.openWindow('winamp')"
-             ontouchend="os.handleDoubleTap(event, 'winamp')">
+             ondblclick="os.openWindow('winamp')" ontouchend="os.handleDoubleTap(event, 'winamp')">
             <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"><span>Winamp</span>
         </div>
     </div>
 
     <div id="window-area">
-        <div id="win-notepad" class="window" style="left: 50px; top: 50px; width: 300px; height: 300px;"><div class="title-bar"><div class="title-bar-text">Notepad</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-notepad')"></button></div></div><div class="window-body"><textarea style="width: 100%; height: 100%; border: none; font-family: monospace; padding: 5px;">Type here...</textarea></div></div>
+        <div id="win-notepad" class="window" style="left: 50px; top: 50px; width: 300px; height: 300px;">
+            <div class="title-bar">
+                <div class="title-bar-text">Notepad</div>
+                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-notepad')"></button></div>
+            </div>
+            <div class="window-body"><textarea style="width: 100%; height: 100%; border: none; font-family: monospace; padding: 5px;">Type here...</textarea></div>
+        </div>
         
-        <div id="win-computer" class="window" style="left: 20px; top: 40px; width: 300px; height: 300px;"><div class="title-bar"><div class="title-bar-text">My Computer</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-computer')"></button></div></div><div class="window-body" style="background: white; border: inset 2px;"><div style="padding: 10px;">C: Drive</div></div></div>
+        <div id="win-computer" class="window" style="left: 20px; top: 40px; width: 300px; height: 300px;">
+            <div class="title-bar">
+                <div class="title-bar-text">My Computer</div>
+                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-computer')"></button></div>
+            </div>
+            <div class="window-body" style="background: white; border: inset 2px;"><div style="padding: 10px;">C: Drive</div></div>
+        </div>
         
-        <div id="win-recycle" class="window" style="left: 60px; top: 100px;"><div class="title-bar"><div class="title-bar-text">Recycle Bin</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-recycle')"></button></div></div><div class="window-body" style="background: white; border: inset 2px;"><p style="padding:10px;">Empty.</p></div></div>
+        <div id="win-recycle" class="window" style="left: 60px; top: 100px;">
+            <div class="title-bar">
+                <div class="title-bar-text">Recycle Bin</div>
+                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-recycle')"></button></div>
+            </div>
+            <div class="window-body" style="background: white; border: inset 2px;"><p style="padding:10px;">Empty.</p></div>
+        </div>
 
-        <div id="win-winamp" style="left: 50vw; top: 30vh;">
+        <div id="win-winamp" style="left: 400px; top: 100px;">
             <div class="wa-title-bar title-bar">
                 <div class="wa-grip">
                     <div class="wa-title-text">WINAMP</div>
@@ -344,7 +251,7 @@
 
             <div class="winamp-face">
                 <div class="wa-screen-container">
-                    <div class="wa-vis-box" onclick="winamp.toggleVisMode()" title="Toggle Visualizer Mode">
+                    <div class="wa-vis-box" onclick="winamp.toggleVisMode()" title="Toggle Visualizer">
                         <canvas id="wa-vis" width="76" height="40"></canvas>
                     </div>
                     <div class="wa-info-box">
@@ -363,9 +270,7 @@
                         <div class="wa-label">VOLUME</div>
                         <input type="range" id="wa-vol-input" min="0" max="1" step="0.05" value="0.8" oninput="winamp.setVolume(this.value)">
                     </div>
-                    
                     <div id="wa-eq-btn" onclick="winamp.toggleEQ()" title="Bass Boost">EQ</div>
-                    
                     <div class="wa-slider-wrapper" style="width: 30%;">
                         <div class="wa-label">BALANCE</div>
                         <input type="range" min="-1" max="1" step="0.1" value="0">
@@ -380,13 +285,13 @@
                 </div>
 
                 <div class="wa-controls-row">
-                    <button class="wa-ctrl-btn icon-prev" title="Previous" onclick="winamp.prev()"></button>
-                    <button class="wa-ctrl-btn icon-play wa-play-btn" title="Play" onclick="winamp.play()"></button>
-                    <button class="wa-ctrl-btn icon-pause" title="Pause" onclick="winamp.pause()"></button>
-                    <button class="wa-ctrl-btn icon-stop" title="Stop" onclick="winamp.stop()"></button>
-                    <button class="wa-ctrl-btn icon-next" title="Next" onclick="winamp.next()"></button>
+                    <button class="wa-ctrl-btn icon-prev" onclick="winamp.prev()"></button>
+                    <button class="wa-ctrl-btn icon-play wa-play-btn" onclick="winamp.play()"></button>
+                    <button class="wa-ctrl-btn icon-pause" onclick="winamp.pause()"></button>
+                    <button class="wa-ctrl-btn icon-stop" onclick="winamp.stop()"></button>
+                    <button class="wa-ctrl-btn icon-next" onclick="winamp.next()"></button>
                     <div style="width: 5px;"></div>
-                    <button class="wa-ctrl-btn icon-eject" title="Open File" onclick="document.getElementById('wa-file-input').click()"></button>
+                    <button class="wa-ctrl-btn icon-eject" onclick="document.getElementById('wa-file-input').click()"></button>
                     <div class="wa-credits">NULLSOFT</div>
                 </div>
             </div>
@@ -429,20 +334,15 @@
                 
                 this.isPlaying = false;
                 this.visInterval = null;
-                
-                // Audio Nodes
                 this.audioCtx = null;
                 this.analyser = null;
                 this.source = null;
                 this.bassFilter = null; 
-                
                 this.isVisConnected = false;
                 this.visMode = 'bars';
                 this.dataArray = null;
-
                 this.playlist = [...DEFAULT_PLAYLIST];
                 this.currentIndex = 0;
-
                 this.bassEnabled = false;
 
                 this.setupEvents();
@@ -470,23 +370,22 @@
 
             loadState() {
                 const saved = localStorage.getItem('winamp_state');
+                const el = document.getElementById('win-winamp');
+                const isMobile = window.innerWidth < 600;
+
                 if (saved) {
                     const state = JSON.parse(saved);
                     if (state.vol !== undefined) {
                         this.audio.volume = state.vol;
                         document.getElementById('wa-vol-input').value = state.vol;
                     }
-                    const el = document.getElementById('win-winamp');
-                    
-                    // Auto-center if off screen (mobile fix)
-                    if (window.innerWidth < 600) {
-                         el.style.left = '50%';
-                         el.style.top = '100px';
-                         el.style.transform = 'translateX(-50%) scale(1.3)'; // Center alignment
+                    // Auto-Reset position if on Mobile or Off-screen
+                    if (isMobile || !state.posX) {
+                         this.centerWinamp(el);
                     } else {
-                        if (state.posX) el.style.left = state.posX;
-                        if (state.posY) el.style.top = state.posY;
-                        if (state.double) el.classList.add('winamp-double');
+                        el.style.left = state.posX;
+                        el.style.top = state.posY;
+                        if (state.double && !isMobile) el.classList.add('winamp-double');
                     }
                     
                     if (state.bass) {
@@ -494,13 +393,17 @@
                         this.eqBtn.classList.add('active');
                     }
                 } else {
-                    // Default Center
-                    if(window.innerWidth < 600) {
-                         const el = document.getElementById('win-winamp');
-                         el.style.left = '50%';
-                         el.style.transform = 'translateX(-50%) scale(1.3)';
-                    }
+                    // First time load: Center it
+                    this.centerWinamp(el);
                 }
+            }
+
+            centerWinamp(el) {
+                // Centers Winamp on the current screen viewport
+                const x = (window.innerWidth / 2) - 137; // 275/2
+                const y = (window.innerHeight / 2) - 58;  // 116/2
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
             }
 
             toggleEQ() {
@@ -527,7 +430,6 @@
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.audioCtx = new AudioContext();
                     this.analyser = this.audioCtx.createAnalyser();
-                    
                     this.bassFilter = this.audioCtx.createBiquadFilter();
                     this.bassFilter.type = "lowshelf";
                     this.bassFilter.frequency.value = 200; 
@@ -554,6 +456,7 @@
                     this.titleEl.innerText = `${this.currentIndex + 1}. ${track.name} (${Math.floor(this.audio.duration)}s)`;
                 });
                 
+                // Drag Prevention for file input
                 document.body.addEventListener('dragover', (e) => e.preventDefault());
                 document.body.addEventListener('drop', (e) => {
                     e.preventDefault();
@@ -571,7 +474,7 @@
 
                 window.addEventListener('beforeunload', () => this.saveState());
                 
-                // Add Haptic to all buttons
+                // Haptic Feedback for all buttons
                 document.querySelectorAll('button, .wa-mini-btn, .desktop-icon').forEach(b => {
                     b.addEventListener('click', () => this.vibrate());
                 });
@@ -619,7 +522,6 @@
                 this.initAudioEngine();
                 if (this.audioCtx && this.audioCtx.state === 'suspended') await this.audioCtx.resume();
                 this.connectVisualizer();
-                
                 try {
                     await this.audio.play();
                     this.isPlaying = true;
@@ -672,7 +574,6 @@
                 const draw = () => {
                     if (!this.isPlaying) return;
                     this.visInterval = requestAnimationFrame(draw);
-                    
                     this.ctx.fillStyle = '#000';
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -687,11 +588,9 @@
                             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
                         }
                         this.analyser.getByteTimeDomainData(this.dataArray);
-
                         this.ctx.lineWidth = 1; 
                         this.ctx.strokeStyle = '#00E000';
                         this.ctx.beginPath();
-                        
                         const sliceWidth = this.canvas.width * 1.0 / this.analyser.frequencyBinCount;
                         let x = 0;
                         for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
@@ -703,14 +602,12 @@
                         }
                         this.ctx.lineTo(this.canvas.width, this.canvas.height/2);
                         this.ctx.stroke();
-
                     } else {
                         this.analyser.fftSize = 64; 
                         if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) {
                             this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
                         }
                         this.analyser.getByteFrequencyData(this.dataArray);
-
                         const barWidth = (this.canvas.width / this.analyser.frequencyBinCount) * 2.5;
                         let x = 0;
                         for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
@@ -750,17 +647,19 @@
 
         class WindowManager {
             constructor() {
-                this.highestZ = 100; this.lastTap = 0;
-                this.initClock(); this.initDragAndDrop();
+                this.highestZ = 100; 
+                this.lastTap = 0; // For detecting double taps
+                this.initClock(); 
+                this.initDragAndDrop();
             }
             initClock() { setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }, 1000); }
             
-            // CUSTOM TOUCH HANDLER for desktop icons on mobile
+            // MOBILE: Detect Double Taps on Touchscreens
             handleDoubleTap(e, winId) {
                 const currentTime = new Date().getTime();
                 const tapLength = currentTime - this.lastTap;
                 if (tapLength < 300 && tapLength > 0) {
-                    // Double Tap detected
+                    if(navigator.vibrate) navigator.vibrate(10);
                     this.openWindow(winId);
                     e.preventDefault();
                 }
@@ -771,8 +670,20 @@
                 const winId = id.startsWith('win-') ? id : 'win-' + id;
                 const winEl = document.getElementById(winId);
                 if (!winEl) return;
-                winEl.style.display = 'flex'; this.bringToFront(winEl); this.updateTaskbar(winId, true);
-                document.getElementById('start-menu').style.display = 'none'; document.getElementById('start-btn').classList.remove('active');
+                
+                // If opening for the first time or centered logic needed
+                if(window.innerWidth < 600 && winId !== 'win-winamp') { 
+                    // Center generic windows on mobile
+                    winEl.style.left = '50%'; 
+                    winEl.style.top = '10%'; 
+                    winEl.style.transform = 'translateX(-50%)';
+                }
+
+                winEl.style.display = 'flex'; 
+                this.bringToFront(winEl); 
+                this.updateTaskbar(winId, true);
+                document.getElementById('start-menu').style.display = 'none'; 
+                document.getElementById('start-btn').classList.remove('active');
             }
             closeWindow(id) { document.getElementById(id).style.display = 'none'; this.updateTaskbar(id, false); if(id==='win-winamp') winamp.stop(); }
             minimizeWindow(id) { document.getElementById(id).style.display = 'none'; const btn = document.getElementById('taskbtn-' + id); if(btn) btn.classList.remove('active'); }
@@ -834,9 +745,7 @@
                         const pos = getPos(e); 
                         const rect = activeEl.getBoundingClientRect();
                         offset = { x: pos.x - rect.left, y: pos.y - rect.top };
-                    } else if (e.target.closest('.desktop-icon')) { 
-                        // Icons generally don't drag on mobile web comfortably, we skip this
-                    } else { return; }
+                    }
                 };
                 
                 const move = (e) => {
