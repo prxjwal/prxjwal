@@ -1,4 +1,3 @@
-
 let zIndex = 100;
 
 // CLOCK LOGIC
