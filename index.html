@@ -1,106 +1,872 @@
----
-layout: null
----
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Windows 98 Mobile</title>
-  
-  <link rel="stylesheet" href="https://unpkg.com/98.css">
-  
-  <link rel="stylesheet" href="{{ '/assets/css/windows98.css' | relative_url }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Windows 98</title>
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+    
+    <style>
+        /* ========================================= */
+        /* ===          OS SHELL STYLES          === */
+        /* ========================================= */
+        body {
+            background-color: #008080;
+            margin: 0;
+            overflow: hidden; /* Prevents "pull to refresh" on mobile */
+            font-family: 'Pixelated MS Sans Serif', Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            
+            /* Mobile Safe Area Padding */
+            padding-top: env(safe-area-inset-top);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            /* We don't pad bottom here, we handle taskbar separately */
+        }
+
+        #desktop-area { 
+            width: 100%; 
+            /* Height subtracts taskbar (28px) and the bottom safe area */
+            height: calc(100vh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); 
+            position: relative; 
+            z-index: 1; 
+        }
+
+        .desktop-icon {
+            width: 80px; /* Slightly larger touch target */
+            position: absolute; 
+            text-align: center; color: white;
+            font-size: 14px; 
+            cursor: pointer; 
+            display: flex; flex-direction: column;
+            align-items: center; 
+            border: 1px solid transparent; 
+            touch-action: none; /* Prevents scrolling when touching icons */
+            padding: 5px;
+        }
+        .desktop-icon:active { background: rgba(0, 0, 128, 0.5); border: 1px dotted yellow; }
+        .desktop-icon img { width: 32px; height: 32px; margin-bottom: 5px; pointer-events: none; object-fit: contain; }
+        
+        #taskbar {
+            position: fixed; 
+            left: 0; right: 0; height: 28px;
+            background: silver; border-top: 2px solid white; display: flex;
+            align-items: center; padding: 2px; z-index: 10000;
+            
+            /* Sit ABOVE the iOS Home Bar / Android Nav Bar */
+            bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .start-btn { font-weight: bold; display: flex; align-items: center; gap: 5px; min-width: 60px; height: 22px; margin-right: 2px; }
+        .start-btn img { height: 16px; }
+        .start-btn.active { background: #e0e0e0; box-shadow: inset 1px 1px 0px black, inset -1px -1px 0px white; }
+        
+        #taskbar-list { flex-grow: 1; display: flex; padding-left: 5px; gap: 2px; overflow: hidden; }
+        .taskbar-item {
+            min-width: 100px; max-width: 150px; padding: 2px 5px; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; font-size: 12px; height: 22px;
+            display: flex; align-items: center; cursor: pointer;
+        }
+        .taskbar-item img { width: 16px; height: 16px; margin-right: 4px; object-fit: contain; }
+        .taskbar-item.active { background: #e0e0e0; box-shadow: inset 1px 1px 0px black, inset -1px -1px 0px white; font-weight: bold; }
+        
+        #tray { border: 1px solid gray; background: #c0c0c0; box-shadow: inset 1px 1px black; padding: 2px 5px; margin-right: 2px; font-size: 12px; min-width: 60px; text-align: center; }
+
+        #start-menu {
+            position: fixed; 
+            /* Push menu up by taskbar height + safe area */
+            bottom: calc(28px + env(safe-area-inset-bottom)); 
+            left: env(safe-area-inset-left); 
+            width: 200px; z-index: 99999;
+            display: none; flex-direction: row; background: silver; padding: 2px;
+            box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff !important;
+        }
+        .start-sidebar { width: 28px; background: linear-gradient(to bottom, #000080, #1084d0); position: relative; }
+        .sidebar-text {
+            transform: rotate(-90deg); transform-origin: bottom left; white-space: nowrap;
+            font-family: Arial, sans-serif; font-size: 18px; color: white;
+            position: absolute; bottom: 15px; left: 22px;
+        }
+        .start-items { flex-grow: 1; padding: 0 2px; display: flex; flex-direction: column; gap: 2px; }
+        .start-item { padding: 8px 10px; /* Bigger touch target */ display: flex; align-items: center; cursor: pointer; font-size: 14px; }
+        .start-item:hover { background: #000080; color: white; }
+        .start-item img { margin-right: 8px; width: 24px; height: 24px; object-fit: contain; }
+
+        .window {
+            position: absolute; display: none; flex-direction: column; background: silver;
+            padding: 2px; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff;
+            /* Max width for mobile */
+            max-width: 95vw;
+        }
+        .window-body { flex-grow: 1; display: flex; flex-direction: column; }
+
+
+        /* ========================================= */
+        /* ===   FIXED WINAMP STYLES (STRICT)    === */
+        /* ========================================= */
+        
+        #win-winamp {
+            position: absolute;
+            width: 275px; 
+            height: 116px; 
+            background: #202020; 
+            display: none;
+            flex-direction: column;
+            
+            /* DEFAULT SCALING (Desktop) */
+            transform: scale(1.6); 
+            transform-origin: top left;
+            transition: transform 0.1s steps(2);
+            
+            border-top: 1px solid #5d5d5d;
+            border-left: 1px solid #5d5d5d;
+            border-right: 1px solid #000;
+            border-bottom: 1px solid #000;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            box-sizing: content-box;
+            font-family: Arial, sans-serif;
+            image-rendering: pixelated; 
+        }
+
+        #win-winamp.winamp-double {
+            transform: scale(2.5) !important; 
+        }
+
+        /* MOBILE RESPONSIVE SCALING */
+        @media (max-width: 600px) {
+            #win-winamp {
+                /* Scale down slightly on phones so it doesn't bleed off screen */
+                transform: scale(1.3);
+            }
+            #win-winamp.winamp-double {
+                transform: scale(1.3) !important; /* Disable double size on small phones */
+            }
+        }
+
+        #win-winamp * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .wa-title-bar {
+            height: 14px;
+            background: #202020;
+            display: flex;
+            cursor: default;
+            position: relative;
+            margin-bottom: 0;
+            border-bottom: 1px solid black;
+        }
+
+        .wa-grip {
+            flex-grow: 1;
+            margin: 2px 2px 0 2px;
+            height: 10px;
+            background: repeating-linear-gradient(90deg, #3a3a3a 0px, #3a3a3a 1px, #000 1px, #000 2px);
+            position: relative;
+        }
+
+        .wa-title-text {
+            position: absolute;
+            top: -2px; left: 4px;
+            font-family: monospace;
+            font-size: 9px;
+            color: #d0d0d0;
+            background: #202020;
+            padding-right: 4px;
+            pointer-events: none;
+        }
+
+        #win-winamp .wa-mini-btn {
+            width: 9px; height: 9px; 
+            background: silver; 
+            border: 1px outset white;
+            font-size: 8px; line-height: 7px; 
+            text-align: center; cursor: pointer;
+            margin-top: 3px; margin-right: 2px;
+            padding: 0; min-width: 0; min-height: 0;
+            box-shadow: none; border-radius: 0;
+            color: black;
+        }
+        #win-winamp .wa-mini-btn:active { border: 1px inset white; }
+
+        .winamp-face {
+            padding: 4px 5px 5px 5px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 42px 14px 14px 20px;
+            gap: 2px;
+        }
+
+        .wa-screen-container {
+            grid-column: 1 / span 2;
+            background: #111;
+            border: 1px solid #484848;
+            border-right: 1px solid #5d5d5d;
+            border-bottom: 1px solid #5d5d5d;
+            display: flex;
+            height: 100%;
+        }
+
+        .wa-vis-box {
+            width: 76px; height: 100%; border-right: 1px solid #333; background: black; cursor: pointer;
+        }
+
+        .wa-info-box {
+            flex-grow: 1; display: flex; flex-direction: column; padding: 2px 4px; overflow: hidden; justify-content: center;
+        }
+
+        .wa-time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+        .wa-timer { font-family: monospace; font-size: 18px; color: #00E000; letter-spacing: 1px; line-height: 18px; }
+        .wa-kbps { font-size: 9px; color: #00E000; font-family: Arial; }
+        
+        .wa-marquee {
+            white-space: nowrap; font-family: monospace; font-size: 9px; color: #00E000;
+            overflow: hidden; width: 100%; position: relative;
+        }
+        .wa-marquee span { display: inline-block; animation: marquee 10s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* Sliders Row */
+        .wa-sliders-row {
+            grid-column: 1 / span 2; display: flex; gap: 5px; align-items: center;
+        }
+        
+        .wa-slider-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100%; justify-content: center; }
+        .wa-label { font-size: 8px; font-family: Arial; color: silver; margin-bottom: -4px; z-index: 1;}
+
+        /* EQ Button */
+        #wa-eq-btn {
+            width: 20px; 
+            height: 14px; 
+            background: silver; 
+            border: 1px outset white;
+            font-size: 8px; 
+            text-align: center; 
+            line-height: 13px; 
+            cursor: pointer;
+            margin-top: 5px; 
+            color: #555; 
+            font-weight: bold;
+        }
+        #wa-eq-btn.active { border: 1px inset white; background: #00E000; color: black; box-shadow: 0 0 2px #00ff00; }
+
+        #win-winamp input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; border: none; box-shadow: none;
+        }
+        #win-winamp input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: #111; border-bottom: 1px solid #555;
+        }
+        #win-winamp input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 9px; width: 11px;
+            background: silver; border: 1px outset white; margin-top: -3px; cursor: pointer; border-radius: 0;
+        }
+
+        .wa-progress-row { grid-column: 1 / span 2; padding-top: 4px; }
+        .wa-progress-bg {
+            width: 100%; height: 8px; background: #000; border-bottom: 1px solid #444; position: relative; cursor: pointer;
+        }
+        .wa-progress-fill { height: 100%; background: #00E000; width: 0%; }
+        .wa-progress-knob {
+            width: 10px; height: 8px; background: silver; border: 1px outset white;
+            position: absolute; top: 0; margin-left: -5px; pointer-events: none;
+        }
+
+        .wa-controls-row {
+            grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 2px;
+        }
+
+        #win-winamp button.wa-ctrl-btn {
+            background: silver; border: 1px outset white; color: black; font-size: 9px; height: 18px; width: 23px;
+            padding: 0; margin: 0; min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: center;
+            box-shadow: none; border-radius: 0;
+        }
+        #win-winamp button.wa-ctrl-btn:active { border: 1px inset white; background: #a0a0a0; transform: translateY(1px); }
+        #win-winamp button.wa-play-btn { width: 28px; }
+        .wa-credits { font-size: 8px; color: #666; font-family: Arial; margin-left: auto; align-self: center; }
+
+        .icon-prev::after { content: "⏮"; font-size: 9px; }
+        .icon-play::after { content: "▶"; font-size: 9px; }
+        .icon-pause::after { content: "⏸"; font-size: 9px; }
+        .icon-stop::after { content: "⏹"; font-size: 9px; }
+        .icon-next::after { content: "⏭"; font-size: 9px; }
+        .icon-eject::after { content: "⏏"; font-size: 9px; }
+    </style>
 </head>
 <body>
 
-  <main id="desktop">
-    
-    <div class="desktop-icon" onclick="openApp('Notepad', 'app-notepad')">
-      <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png" alt="Notepad">
-      <span>Notepad</span>
-    </div>
+    <input type="file" id="wa-file-input" multiple accept="audio/*" style="display: none;" onchange="winamp.handleFiles(this.files)">
 
-    <div class="desktop-icon" onclick="openApp('My Computer', 'app-computer')">
-      <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png" alt="Computer">
-      <span>My Computer</span>
-    </div>
-
-    <div class="desktop-icon">
-      <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" alt="Trash">
-      <span>Recycle Bin</span>
-    </div>
-
-  </main>
-
-  <div id="start-menu" class="window">
-    <div class="sidebar" style="background: linear-gradient(to bottom, #000080, #1084d0); width: 25px; position: absolute; left: 0; top: 0; bottom: 0; color: white; writing-mode: vertical-rl; text-align: center; font-weight: bold; font-size: 16px; padding-top: 10px;">
-      <span style="transform: rotate(180deg);">Windows 98</span>
-    </div>
-    <div style="margin-left: 28px;">
-      <a href="#" class="start-item" onclick="openApp('Notepad', 'app-notepad'); toggleStartMenu()">Programs</a>
-      <a href="#" class="start-item" onclick="alert('Searching...'); toggleStartMenu()">Find</a>
-      <hr style="margin: 2px;">
-      <a href="#" class="start-item" onclick="window.close()">Shut Down...</a>
-    </div>
-  </div>
-
-  <div id="taskbar">
-    <button id="start-button" onclick="toggleStartMenu()">
-      <img src="https://win98icons.alexmeub.com/icons/png/windows-0.png" style="height: 18px;">
-      Start
-    </button>
-    <div style="height: 20px; width: 2px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 5px;"></div>
-    
-    <div id="taskbar-list" style="display: flex; gap: 2px;"></div>
-    
-    <div style="margin-left: auto; padding: 2px 8px; border: 2px solid; border-color: gray white white gray; font-size: 12px; background: silver;">
-      <span id="clock">12:00 PM</span>
-    </div>
-  </div>
-
-  <template id="app-notepad">
-    <div style="display: flex; flex-direction: column; height: 100%;">
-      <ul class="tree-view" style="margin-bottom: 5px; height: 20px; display: flex; gap: 10px; list-style: none; padding: 0;">
-        <li><u>F</u>ile</li>
-        <li><u>E</u>dit</li>
-        <li><u>S</u>earch</li>
-        <li><u>H</u>elp</li>
-      </ul>
-      <textarea id="notepad-area" style="flex: 1; resize: none; border: 2px solid; border-color: gray white white gray; font-family: 'Courier New', monospace; padding: 5px; outline: none;"></textarea>
-    </div>
-  </template>
-
-  <template id="app-computer">
-    <div style="background: white; height: 100%; padding: 10px; border: 2px inset white;">
-      <p>3 Object(s)</p>
-      <div style="display: flex; gap: 20px;">
-        <div style="text-align: center;">
-          <img src="https://win98icons.alexmeub.com/icons/png/drive_c-1.png" width="32"><br>
-          <span>(C:)</span>
+    <div id="desktop-area">
+        <div class="desktop-icon" style="top: 20px; left: 20px;" 
+             ondblclick="os.openWindow('computer')"
+             ontouchend="os.handleDoubleTap(event, 'computer')">
+            <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"><span>My Computer</span>
         </div>
-        <div style="text-align: center;">
-          <img src="https://win98icons.alexmeub.com/icons/png/cd_drive-1.png" width="32"><br>
-          <span>(D:)</span>
+        
+        <div class="desktop-icon" style="top: 120px; left: 20px;" 
+             ondblclick="os.openWindow('recycle')"
+             ontouchend="os.handleDoubleTap(event, 'recycle')">
+            <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png"><span>Recycle Bin</span>
         </div>
-      </div>
-    </div>
-  </template>
-
-  <template id="window-template">
-    <div class="window" aria-label="window">
-      <div class="title-bar">
-        <div class="title-bar-text">Title</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" class="minimize-btn"></button>
-          <button aria-label="Maximize" class="maximize-btn"></button>
-          <button aria-label="Close" class="close-btn"></button>
+        
+        <div class="desktop-icon" style="top: 220px; left: 20px;" 
+             ondblclick="os.openWindow('notepad')"
+             ontouchend="os.handleDoubleTap(event, 'notepad')">
+            <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"><span>Notepad</span>
         </div>
-      </div>
-      <div class="window-body"></div>
+        
+        <div class="desktop-icon" style="top: 20px; left: 120px;" 
+             ondblclick="os.openWindow('winamp')"
+             ontouchend="os.handleDoubleTap(event, 'winamp')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"><span>Winamp</span>
+        </div>
     </div>
-  </template>
 
-  <script src="{{ '/assets/js/windows98.js' | relative_url }}"></script>
+    <div id="window-area">
+        <div id="win-notepad" class="window" style="left: 50px; top: 50px; width: 300px; height: 300px;"><div class="title-bar"><div class="title-bar-text">Notepad</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-notepad')"></button></div></div><div class="window-body"><textarea style="width: 100%; height: 100%; border: none; font-family: monospace; padding: 5px;">Type here...</textarea></div></div>
+        
+        <div id="win-computer" class="window" style="left: 20px; top: 40px; width: 300px; height: 300px;"><div class="title-bar"><div class="title-bar-text">My Computer</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-computer')"></button></div></div><div class="window-body" style="background: white; border: inset 2px;"><div style="padding: 10px;">C: Drive</div></div></div>
+        
+        <div id="win-recycle" class="window" style="left: 60px; top: 100px;"><div class="title-bar"><div class="title-bar-text">Recycle Bin</div><div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-recycle')"></button></div></div><div class="window-body" style="background: white; border: inset 2px;"><p style="padding:10px;">Empty.</p></div></div>
+
+        <div id="win-winamp" style="left: 50vw; top: 30vh;">
+            <div class="wa-title-bar title-bar">
+                <div class="wa-grip">
+                    <div class="wa-title-text">WINAMP</div>
+                </div>
+                <div class="wa-mini-btn" onclick="os.minimizeWindow('win-winamp')">_</div>
+                <div class="wa-mini-btn" onclick="os.closeWindow('win-winamp')">x</div>
+            </div>
+
+            <div class="winamp-face">
+                <div class="wa-screen-container">
+                    <div class="wa-vis-box" onclick="winamp.toggleVisMode()" title="Toggle Visualizer Mode">
+                        <canvas id="wa-vis" width="76" height="40"></canvas>
+                    </div>
+                    <div class="wa-info-box">
+                        <div class="wa-time-row">
+                            <div id="wa-timer" class="wa-timer">00:00</div>
+                            <div class="wa-kbps">128 kbps</div>
+                        </div>
+                        <div class="wa-marquee">
+                            <span id="wa-title">Winamp 2.91</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wa-sliders-row">
+                    <div class="wa-slider-wrapper" style="width: 50%;">
+                        <div class="wa-label">VOLUME</div>
+                        <input type="range" id="wa-vol-input" min="0" max="1" step="0.05" value="0.8" oninput="winamp.setVolume(this.value)">
+                    </div>
+                    
+                    <div id="wa-eq-btn" onclick="winamp.toggleEQ()" title="Bass Boost">EQ</div>
+                    
+                    <div class="wa-slider-wrapper" style="width: 30%;">
+                        <div class="wa-label">BALANCE</div>
+                        <input type="range" min="-1" max="1" step="0.1" value="0">
+                    </div>
+                </div>
+
+                <div class="wa-progress-row">
+                    <div class="wa-progress-bg" onclick="winamp.seek(event)">
+                        <div id="wa-bar" class="wa-progress-fill"></div>
+                        <div id="wa-thumb" class="wa-progress-knob" style="left: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="wa-controls-row">
+                    <button class="wa-ctrl-btn icon-prev" title="Previous" onclick="winamp.prev()"></button>
+                    <button class="wa-ctrl-btn icon-play wa-play-btn" title="Play" onclick="winamp.play()"></button>
+                    <button class="wa-ctrl-btn icon-pause" title="Pause" onclick="winamp.pause()"></button>
+                    <button class="wa-ctrl-btn icon-stop" title="Stop" onclick="winamp.stop()"></button>
+                    <button class="wa-ctrl-btn icon-next" title="Next" onclick="winamp.next()"></button>
+                    <div style="width: 5px;"></div>
+                    <button class="wa-ctrl-btn icon-eject" title="Open File" onclick="document.getElementById('wa-file-input').click()"></button>
+                    <div class="wa-credits">NULLSOFT</div>
+                </div>
+            </div>
+            <audio id="wa-audio" crossorigin="anonymous"></audio>
+        </div>
+    </div>
+
+    <div id="start-menu" class="window">
+        <div class="start-sidebar"><div class="sidebar-text"><strong>Windows</strong><span>98</span></div></div>
+        <div class="start-items">
+            <div class="start-item" onclick="os.openWindow('computer')"><img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"> My Computer</div>
+            <div class="start-item" onclick="os.openWindow('notepad')"><img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"> Notepad</div>
+            <div class="start-item" onclick="os.openWindow('winamp')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"> Winamp</div>
+            <div style="height: 1px; background: gray; margin: 4px 0; border-bottom: 1px solid white;"></div>
+            <div class="start-item" onclick="location.reload()"><img src="https://win98icons.alexmeub.com/icons/png/shut_down_cool-4.png"> Shut Down...</div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <button id="start-btn" class="start-btn" onclick="os.toggleStartMenu()"><img src="https://win98icons.alexmeub.com/icons/png/windows-0.png"> Start</button>
+        <div style="width: 2px; height: 20px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 4px;"></div>
+        <div id="taskbar-list"></div>
+        <div style="width: 2px; height: 20px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 4px;"></div>
+        <div id="tray"><span id="clock">12:00 PM</span></div>
+    </div>
+
+    <script>
+        const DEFAULT_PLAYLIST = [];
+
+        class WinampApp {
+            constructor() {
+                this.audio = document.getElementById('wa-audio');
+                this.canvas = document.getElementById('wa-vis');
+                this.ctx = this.canvas.getContext('2d');
+                this.timerEl = document.getElementById('wa-timer');
+                this.barEl = document.getElementById('wa-bar');
+                this.thumbEl = document.getElementById('wa-thumb');
+                this.titleEl = document.getElementById('wa-title');
+                this.eqBtn = document.getElementById('wa-eq-btn');
+                
+                this.isPlaying = false;
+                this.visInterval = null;
+                
+                // Audio Nodes
+                this.audioCtx = null;
+                this.analyser = null;
+                this.source = null;
+                this.bassFilter = null; 
+                
+                this.isVisConnected = false;
+                this.visMode = 'bars';
+                this.dataArray = null;
+
+                this.playlist = [...DEFAULT_PLAYLIST];
+                this.currentIndex = 0;
+
+                this.bassEnabled = false;
+
+                this.setupEvents();
+                this.loadState(); 
+                
+                if(this.playlist.length > 0) this.loadTrack(0, false);
+                else this.titleEl.innerText = "Winamp 2.91";
+            }
+
+            vibrate() {
+                if(navigator.vibrate) navigator.vibrate(5);
+            }
+
+            saveState() {
+                const el = document.getElementById('win-winamp');
+                const state = {
+                    vol: this.audio.volume,
+                    posX: el.style.left,
+                    posY: el.style.top,
+                    double: el.classList.contains('winamp-double'),
+                    bass: this.bassEnabled
+                };
+                localStorage.setItem('winamp_state', JSON.stringify(state));
+            }
+
+            loadState() {
+                const saved = localStorage.getItem('winamp_state');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    if (state.vol !== undefined) {
+                        this.audio.volume = state.vol;
+                        document.getElementById('wa-vol-input').value = state.vol;
+                    }
+                    const el = document.getElementById('win-winamp');
+                    
+                    // Auto-center if off screen (mobile fix)
+                    if (window.innerWidth < 600) {
+                         el.style.left = '50%';
+                         el.style.top = '100px';
+                         el.style.transform = 'translateX(-50%) scale(1.3)'; // Center alignment
+                    } else {
+                        if (state.posX) el.style.left = state.posX;
+                        if (state.posY) el.style.top = state.posY;
+                        if (state.double) el.classList.add('winamp-double');
+                    }
+                    
+                    if (state.bass) {
+                        this.bassEnabled = true;
+                        this.eqBtn.classList.add('active');
+                    }
+                } else {
+                    // Default Center
+                    if(window.innerWidth < 600) {
+                         const el = document.getElementById('win-winamp');
+                         el.style.left = '50%';
+                         el.style.transform = 'translateX(-50%) scale(1.3)';
+                    }
+                }
+            }
+
+            toggleEQ() {
+                this.vibrate();
+                this.bassEnabled = !this.bassEnabled;
+                this.eqBtn.classList.toggle('active');
+                if (this.bassFilter) {
+                    const now = this.audioCtx.currentTime;
+                    const gain = this.bassEnabled ? 15 : 0;
+                    this.bassFilter.gain.linearRampToValueAtTime(gain, now + 0.1);
+                }
+                this.saveState();
+            }
+
+            toggleVisMode() {
+                this.vibrate();
+                this.visMode = (this.visMode === 'bars') ? 'oscilloscope' : 'bars';
+                if(this.dataArray) this.dataArray = null;
+            }
+
+            initAudioEngine() {
+                if (this.audioCtx) return;
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.audioCtx = new AudioContext();
+                    this.analyser = this.audioCtx.createAnalyser();
+                    
+                    this.bassFilter = this.audioCtx.createBiquadFilter();
+                    this.bassFilter.type = "lowshelf";
+                    this.bassFilter.frequency.value = 200; 
+                    this.bassFilter.gain.value = this.bassEnabled ? 15 : 0;
+                } catch(e) { console.error("Audio API error"); }
+            }
+
+            connectVisualizer() {
+                if (this.isVisConnected || !this.audioCtx) return;
+                try {
+                    this.source = this.audioCtx.createMediaElementSource(this.audio);
+                    this.source.connect(this.bassFilter);
+                    this.bassFilter.connect(this.analyser);
+                    this.analyser.connect(this.audioCtx.destination);
+                    this.isVisConnected = true;
+                } catch (e) { this.isVisConnected = false; }
+            }
+
+            setupEvents() {
+                this.audio.addEventListener('timeupdate', () => this.updateUI());
+                this.audio.addEventListener('ended', () => this.next());
+                this.audio.addEventListener('playing', () => {
+                    const track = this.playlist[this.currentIndex];
+                    this.titleEl.innerText = `${this.currentIndex + 1}. ${track.name} (${Math.floor(this.audio.duration)}s)`;
+                });
+                
+                document.body.addEventListener('dragover', (e) => e.preventDefault());
+                document.body.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if(e.dataTransfer.files && e.dataTransfer.files.length > 0) this.handleFiles(e.dataTransfer.files);
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        const waWin = document.getElementById('win-winamp');
+                        waWin.classList.toggle('winamp-double');
+                        this.saveState(); 
+                    }
+                });
+
+                window.addEventListener('beforeunload', () => this.saveState());
+                
+                // Add Haptic to all buttons
+                document.querySelectorAll('button, .wa-mini-btn, .desktop-icon').forEach(b => {
+                    b.addEventListener('click', () => this.vibrate());
+                });
+            }
+
+            handleFiles(files) {
+                if (!files || files.length === 0) return;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if(!file.type.startsWith('audio')) continue;
+                    this.playlist.push({ name: file.name, url: URL.createObjectURL(file) });
+                }
+                this.loadTrack(this.playlist.length - files.length, true);
+            }
+
+            loadTrack(index, autoPlay) {
+                if (index < 0 || index >= this.playlist.length) return;
+                this.currentIndex = index;
+                const track = this.playlist[index];
+                this.audio.src = track.url;
+                this.titleEl.innerText = `${index + 1}. ${track.name} - Stopped`;
+                this.timerEl.innerText = "00:00";
+                this.barEl.style.width = "0%";
+                this.thumbEl.style.left = "0%";
+                if (autoPlay) this.play();
+            }
+
+            next() {
+                this.vibrate();
+                if (this.playlist.length === 0) return;
+                let nextIndex = (this.currentIndex + 1) % this.playlist.length;
+                this.loadTrack(nextIndex, true);
+            }
+
+            prev() {
+                this.vibrate();
+                if (this.playlist.length === 0) return;
+                let prevIndex = (this.currentIndex - 1 + this.playlist.length) % this.playlist.length;
+                this.loadTrack(prevIndex, true);
+            }
+
+            async play() {
+                this.vibrate();
+                if (this.playlist.length === 0) return;
+                this.initAudioEngine();
+                if (this.audioCtx && this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+                this.connectVisualizer();
+                
+                try {
+                    await this.audio.play();
+                    this.isPlaying = true;
+                    this.startVis();
+                } catch(e) { this.titleEl.innerText = "Click Play Again"; }
+            }
+
+            pause() {
+                this.vibrate();
+                this.audio.pause();
+                this.isPlaying = false;
+                this.titleEl.innerText = "*** PAUSED ***";
+                cancelAnimationFrame(this.visInterval);
+            }
+
+            stop() {
+                this.vibrate();
+                this.pause();
+                this.audio.currentTime = 0;
+                this.updateUI();
+                this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height); 
+                this.ctx.fillStyle = "black";
+                this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
+                this.titleEl.innerText = "Winamp 2.91";
+            }
+
+            setVolume(val) { 
+                this.audio.volume = val; 
+                this.saveState(); 
+            }
+
+            seek(e) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                if(this.audio.duration) this.audio.currentTime = percent * this.audio.duration;
+            }
+
+            updateUI() {
+                let mins = Math.floor(this.audio.currentTime / 60);
+                let secs = Math.floor(this.audio.currentTime % 60).toString().padStart(2, '0');
+                this.timerEl.innerText = `${mins}:${secs}`;
+                if (this.audio.duration) {
+                    const pct = (this.audio.currentTime / this.audio.duration) * 100;
+                    this.barEl.style.width = pct + "%";
+                    this.thumbEl.style.left = pct + "%";
+                }
+            }
+
+            startVis() {
+                const draw = () => {
+                    if (!this.isPlaying) return;
+                    this.visInterval = requestAnimationFrame(draw);
+                    
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                    if (!this.isVisConnected || !this.analyser) {
+                        this.drawFakeVis();
+                        return;
+                    }
+
+                    if (this.visMode === 'oscilloscope') {
+                        this.analyser.fftSize = 2048; 
+                        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) {
+                            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                        }
+                        this.analyser.getByteTimeDomainData(this.dataArray);
+
+                        this.ctx.lineWidth = 1; 
+                        this.ctx.strokeStyle = '#00E000';
+                        this.ctx.beginPath();
+                        
+                        const sliceWidth = this.canvas.width * 1.0 / this.analyser.frequencyBinCount;
+                        let x = 0;
+                        for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
+                            const v = this.dataArray[i] / 128.0;
+                            const y = v * this.canvas.height / 2;
+                            if(i === 0) this.ctx.moveTo(x, y);
+                            else this.ctx.lineTo(x, y);
+                            x += sliceWidth;
+                        }
+                        this.ctx.lineTo(this.canvas.width, this.canvas.height/2);
+                        this.ctx.stroke();
+
+                    } else {
+                        this.analyser.fftSize = 64; 
+                        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) {
+                            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                        }
+                        this.analyser.getByteFrequencyData(this.dataArray);
+
+                        const barWidth = (this.canvas.width / this.analyser.frequencyBinCount) * 2.5;
+                        let x = 0;
+                        for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
+                            const barHeight = this.dataArray[i] / 255 * this.canvas.height;
+                            this.ctx.fillStyle = `rgb(0, ${barHeight + 100}, 0)`;
+                            this.ctx.fillRect(x, this.canvas.height - barHeight, barWidth, barHeight);
+                            this.ctx.fillStyle = '#FFF';
+                            this.ctx.fillRect(x, this.canvas.height - barHeight - 2, barWidth, 1);
+                            x += barWidth + 1;
+                        }
+                    }
+                };
+                draw();
+            }
+
+            drawFakeVis() {
+                if (this.visMode === 'oscilloscope') {
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeStyle = '#00E000';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, this.canvas.height/2);
+                    for(let i=0; i<this.canvas.width; i+=5) {
+                        this.ctx.lineTo(i, (this.canvas.height/2) + Math.sin(i + Date.now()/100)*10);
+                    }
+                    this.ctx.stroke();
+                } else {
+                    const bars = 16;
+                    const barWidth = this.canvas.width / bars;
+                    for(let i=0; i<bars; i++) {
+                        let h = Math.random() * (this.canvas.height * 0.8);
+                        this.ctx.fillStyle = '#00E000';
+                        this.ctx.fillRect(i * barWidth, this.canvas.height - h, barWidth - 1, h);
+                    }
+                }
+            }
+        }
+
+        class WindowManager {
+            constructor() {
+                this.highestZ = 100; this.lastTap = 0;
+                this.initClock(); this.initDragAndDrop();
+            }
+            initClock() { setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }, 1000); }
+            
+            // CUSTOM TOUCH HANDLER for desktop icons on mobile
+            handleDoubleTap(e, winId) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - this.lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    // Double Tap detected
+                    this.openWindow(winId);
+                    e.preventDefault();
+                }
+                this.lastTap = currentTime;
+            }
+
+            openWindow(id) {
+                const winId = id.startsWith('win-') ? id : 'win-' + id;
+                const winEl = document.getElementById(winId);
+                if (!winEl) return;
+                winEl.style.display = 'flex'; this.bringToFront(winEl); this.updateTaskbar(winId, true);
+                document.getElementById('start-menu').style.display = 'none'; document.getElementById('start-btn').classList.remove('active');
+            }
+            closeWindow(id) { document.getElementById(id).style.display = 'none'; this.updateTaskbar(id, false); if(id==='win-winamp') winamp.stop(); }
+            minimizeWindow(id) { document.getElementById(id).style.display = 'none'; const btn = document.getElementById('taskbtn-' + id); if(btn) btn.classList.remove('active'); }
+            
+            bringToFront(el) {
+                this.highestZ++; el.style.zIndex = this.highestZ;
+                document.querySelectorAll('.taskbar-item').forEach(b => b.classList.remove('active'));
+                const btn = document.getElementById('taskbtn-' + el.id); if (btn) btn.classList.add('active');
+            }
+
+            updateTaskbar(winId, isOpen) {
+                const taskbar = document.getElementById('taskbar-list');
+                const existingBtn = document.getElementById('taskbtn-' + winId);
+                if (!isOpen) { if (existingBtn) existingBtn.remove(); return; }
+                if (!existingBtn) {
+                    const btn = document.createElement('button'); btn.id = 'taskbtn-' + winId; btn.className = 'taskbar-item active';
+                    let titleText = "App";
+                    if (winId === 'win-winamp') {
+                         titleText = "Winamp";
+                         const icon = document.createElement('img');
+                         icon.src = "https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png";
+                         btn.appendChild(icon);
+                    } else {
+                        const titleEl = document.querySelector(`#${winId} .title-bar-text`);
+                        titleText = titleEl ? titleEl.innerText : "App";
+                        const iconImg = titleEl ? titleEl.querySelector('img') : null;
+                        if(iconImg) btn.appendChild(iconImg.cloneNode());
+                    }
+                    const span = document.createElement('span'); span.innerText = titleText; btn.appendChild(span);
+                    btn.onclick = () => { if(navigator.vibrate) navigator.vibrate(5); this.toggleFromTaskbar(winId); };
+                    taskbar.appendChild(btn);
+                }
+            }
+
+            toggleFromTaskbar(winId) {
+                const win = document.getElementById(winId);
+                if (win.style.display === 'none') { win.style.display = 'flex'; this.bringToFront(win); } 
+                else { if (parseInt(win.style.zIndex) === this.highestZ) { this.minimizeWindow(winId); } else { this.bringToFront(win); } }
+            }
+
+            toggleStartMenu() {
+                if(navigator.vibrate) navigator.vibrate(5);
+                const menu = document.getElementById('start-menu'); const btn = document.getElementById('start-btn');
+                if (menu.style.display === 'none' || menu.style.display === '') { menu.style.display = 'flex'; menu.style.zIndex = this.highestZ + 999; btn.classList.add('active'); } 
+                else { menu.style.display = 'none'; btn.classList.remove('active'); }
+            }
+
+            initDragAndDrop() {
+                let activeEl = null; let offset = { x: 0, y: 0 }; let isDragging = false;
+                
+                const getPos = (e) => { return (e.touches && e.touches.length > 0) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; };
+                
+                const start = (e) => {
+                    if (e.target.closest('.title-bar')) {
+                        if (e.target.tagName === 'BUTTON' || e.target.classList.contains('wa-mini-btn')) return;
+                        activeEl = e.target.closest('.window') || e.target.closest('#win-winamp'); 
+                        this.bringToFront(activeEl);
+                        isDragging = true; 
+                        const pos = getPos(e); 
+                        const rect = activeEl.getBoundingClientRect();
+                        offset = { x: pos.x - rect.left, y: pos.y - rect.top };
+                    } else if (e.target.closest('.desktop-icon')) { 
+                        // Icons generally don't drag on mobile web comfortably, we skip this
+                    } else { return; }
+                };
+                
+                const move = (e) => {
+                    if (!isDragging || !activeEl) return; 
+                    
+                    e.preventDefault(); // Prevents page scrolling while dragging window
+                    
+                    const pos = getPos(e);
+                    let newY = pos.y - offset.y; 
+                    // Constraint to prevent dragging below safe area
+                    if(newY < 0) newY = 0;
+                    
+                    activeEl.style.left = (pos.x - offset.x) + 'px'; 
+                    activeEl.style.top = newY + 'px';
+                };
+                
+                const end = () => { 
+                    isDragging = false; 
+                    if(activeEl && activeEl.id === 'win-winamp') winamp.saveState();
+                    activeEl = null; 
+                };
+                
+                document.addEventListener('mousedown', start); document.addEventListener('touchstart', start, { passive: false });
+                document.addEventListener('mousemove', move); document.addEventListener('touchmove', move, { passive: false });
+                document.addEventListener('mouseup', end); document.addEventListener('touchend', end);
+            }
+        }
+        
+        const os = new WindowManager();
+        const winamp = new WinampApp();
+    </script>
 </body>
 </html>
