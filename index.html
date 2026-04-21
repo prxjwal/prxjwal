@@ -1,781 +1,2306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Windows 98 - Winamp Edition</title>
-    <link rel="stylesheet" href="https://unpkg.com/98.css">
-    
-    <style>
-        /* ========================================= */
-        /* ===          OS SHELL STYLES          === */
-        /* ========================================= */
-        body {
-            background-color: #008080;
-            margin: 0;
-            overflow: hidden; /* Locks the app so you can't scroll past the desktop */
-            font-family: 'Pixelated MS Sans Serif', Arial, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            
-            /* SAFE AREA: Respects the notch/dynamic island */
-            padding-top: env(safe-area-inset-top);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Windows 98 — Portfolio Edition</title>
+<link rel="stylesheet" href="https://unpkg.com/98.css">
+<style>
+/* ============================================================ */
+/* BOOT SCREEN */
+/* ============================================================ */
+#boot-screen {
+  position: fixed; inset: 0; background: #000; z-index: 999999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: white; font-family: monospace;
+  transition: opacity 0.6s ease;
+}
+#boot-screen .boot-logo { font-size: 36px; font-weight: bold; color: #00aaff; margin-bottom: 10px; letter-spacing: 2px; }
+#boot-screen .boot-sub { font-size: 13px; color: #aaa; margin-bottom: 30px; }
+#boot-screen .boot-bar-wrap { width: 300px; height: 16px; border: 2px solid #555; background: #111; }
+#boot-screen .boot-bar-fill { height: 100%; background: linear-gradient(90deg, #000080, #00aaff); width: 0%; transition: width 0.1s linear; }
+#boot-screen .boot-msg { margin-top: 12px; font-size: 11px; color: #666; }
 
-        #desktop-area { 
-            width: 100%; 
-            /* Height = Viewport - Taskbar - Safe Areas */
-            height: calc(100vh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); 
-            position: relative; 
-            z-index: 1; 
-        }
+/* ============================================================ */
+/* OS SHELL */
+/* ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background-color: #008080;
+  margin: 0; overflow: hidden;
+  font-family: 'Pixelated MS Sans Serif', Arial, sans-serif;
+  user-select: none; -webkit-user-select: none;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+#desktop-area {
+  width: 100%;
+  height: calc(100vh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  position: relative; z-index: 1;
+  background-image: radial-gradient(ellipse at 20% 80%, rgba(0,0,80,0.15) 0%, transparent 60%);
+}
+.desktop-icon {
+  width: 80px; position: absolute; text-align: center; color: white;
+  font-size: 11px; cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; border: 1px solid transparent;
+  touch-action: manipulation; padding: 5px; border-radius: 2px;
+}
+.desktop-icon:hover { background: rgba(0,0,128,0.3); border: 1px dotted rgba(255,255,255,0.5); }
+.desktop-icon:active, .desktop-icon.selected { background: rgba(0,0,128,0.55); border: 1px dotted yellow; }
+.desktop-icon img { width: 32px; height: 32px; margin-bottom: 4px; pointer-events: none; object-fit: contain; image-rendering: pixelated; }
+.desktop-icon span { text-shadow: 1px 1px 2px black, -1px -1px 2px black; pointer-events: none; line-height: 1.3; }
 
-        .desktop-icon {
-            width: 80px; /* Wider touch target */
-            position: absolute; 
-            text-align: center; color: white;
-            font-size: 14px; 
-            cursor: pointer; 
-            display: flex; flex-direction: column;
-            align-items: center; 
-            border: 1px solid transparent; 
-            touch-action: manipulation; /* Improves touch response */
-            padding: 5px;
-        }
-        .desktop-icon:active { background: rgba(0, 0, 128, 0.5); border: 1px dotted yellow; }
-        .desktop-icon img { width: 32px; height: 32px; margin-bottom: 5px; pointer-events: none; object-fit: contain; }
-        
-        #taskbar {
-            position: fixed; 
-            left: 0; right: 0; height: 28px;
-            background: silver; border-top: 2px solid white; display: flex;
-            align-items: center; padding: 2px; z-index: 10000;
-            
-            /* SAFE AREA: Pushes taskbar above the iOS Home Swipe Bar */
-            bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
+/* Taskbar */
+#taskbar {
+  position: fixed; left: 0; right: 0; height: 28px;
+  background: silver; border-top: 2px solid white;
+  display: flex; align-items: center; padding: 2px; z-index: 10000;
+  bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.start-btn { font-weight: bold; display: flex; align-items: center; gap: 4px; min-width: 60px; height: 22px; margin-right: 2px; font-size: 12px; }
+.start-btn img { height: 16px; }
+.start-btn.active { box-shadow: inset 1px 1px 0px #0a0a0a, inset -1px -1px 0px #dfdfdf; }
+#taskbar-list { flex-grow: 1; display: flex; padding-left: 4px; gap: 2px; overflow: hidden; }
+.taskbar-item {
+  min-width: 70px; max-width: 140px; padding: 2px 5px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; font-size: 11px; height: 22px;
+  display: flex; align-items: center; cursor: pointer;
+}
+.taskbar-item img { width: 14px; height: 14px; margin-right: 4px; object-fit: contain; }
+.taskbar-item.active { box-shadow: inset 1px 1px 0px #0a0a0a, inset -1px -1px 0px #dfdfdf; font-weight: bold; }
+#tray { border: 1px solid gray; background: #c0c0c0; box-shadow: inset 1px 1px black; padding: 2px 6px; margin-right: 2px; font-size: 11px; min-width: 65px; text-align: center; display: flex; align-items: center; gap: 4px; }
+#tray-vol { cursor: pointer; font-size: 13px; }
 
-        .start-btn { font-weight: bold; display: flex; align-items: center; gap: 5px; min-width: 60px; height: 22px; margin-right: 2px; }
-        .start-btn img { height: 16px; }
-        .start-btn.active { background: #e0e0e0; box-shadow: inset 1px 1px 0px black, inset -1px -1px 0px white; }
-        
-        #taskbar-list { flex-grow: 1; display: flex; padding-left: 5px; gap: 2px; overflow: hidden; }
-        .taskbar-item {
-            min-width: 80px; max-width: 150px; padding: 2px 5px; white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis; font-size: 12px; height: 22px;
-            display: flex; align-items: center; cursor: pointer;
-        }
-        .taskbar-item img { width: 16px; height: 16px; margin-right: 4px; object-fit: contain; }
-        .taskbar-item.active { background: #e0e0e0; box-shadow: inset 1px 1px 0px black, inset -1px -1px 0px white; font-weight: bold; }
-        
-        #tray { border: 1px solid gray; background: #c0c0c0; box-shadow: inset 1px 1px black; padding: 2px 5px; margin-right: 2px; font-size: 12px; min-width: 60px; text-align: center; }
+/* Start Menu */
+#start-menu {
+  position: fixed;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  left: env(safe-area-inset-left);
+  width: 210px; z-index: 99999;
+  display: none; flex-direction: row; background: silver; padding: 2px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff;
+}
+.start-sidebar { width: 26px; background: linear-gradient(to bottom, #000080, #1084d0); position: relative; flex-shrink: 0; }
+.sidebar-text {
+  transform: rotate(-90deg); transform-origin: bottom left; white-space: nowrap;
+  font-family: Arial, sans-serif; font-size: 16px; color: white;
+  position: absolute; bottom: 12px; left: 20px;
+}
+.sidebar-text strong { font-size: 18px; }
+.start-items { flex-grow: 1; padding: 2px; display: flex; flex-direction: column; }
+.start-separator { height: 1px; background: gray; margin: 3px 4px; border-bottom: 1px solid white; }
+.start-item { padding: 6px 8px; display: flex; align-items: center; cursor: pointer; font-size: 12px; gap: 8px; }
+.start-item:hover { background: #000080; color: white; }
+.start-item img { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
 
-        #start-menu {
-            position: fixed; 
-            /* Start menu respects bottom safe area too */
-            bottom: calc(28px + env(safe-area-inset-bottom)); 
-            left: env(safe-area-inset-left); 
-            width: 200px; z-index: 99999;
-            display: none; flex-direction: row; background: silver; padding: 2px;
-            box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff !important;
-        }
-        .start-sidebar { width: 28px; background: linear-gradient(to bottom, #000080, #1084d0); position: relative; }
-        .sidebar-text {
-            transform: rotate(-90deg); transform-origin: bottom left; white-space: nowrap;
-            font-family: Arial, sans-serif; font-size: 18px; color: white;
-            position: absolute; bottom: 15px; left: 22px;
-        }
-        .start-items { flex-grow: 1; padding: 0 2px; display: flex; flex-direction: column; gap: 2px; }
-        .start-item { padding: 8px 10px; display: flex; align-items: center; cursor: pointer; font-size: 14px; }
-        .start-item:hover { background: #000080; color: white; }
-        .start-item img { margin-right: 8px; width: 24px; height: 24px; object-fit: contain; }
+/* ============================================================ */
+/* WINDOW BASE */
+/* ============================================================ */
+.window {
+  position: absolute; display: none; flex-direction: column; background: silver;
+  padding: 2px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff;
+  max-width: 96vw;
+}
+.window-body { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+.window-body.padded { padding: 8px; }
 
-        .window {
-            position: absolute; display: none; flex-direction: column; background: silver;
-            padding: 2px; box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff;
-            max-width: 95vw; /* Prevent windows from being wider than mobile screen */
-        }
-        .window-body { flex-grow: 1; display: flex; flex-direction: column; }
+/* Resize handle */
+.resize-se {
+  position: absolute; bottom: 0; right: 0;
+  width: 12px; height: 12px; cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, silver 50%);
+}
 
+/* ============================================================ */
+/* CONTEXT MENU */
+/* ============================================================ */
+#ctx-menu {
+  position: fixed; z-index: 500000; background: silver;
+  border: 1px solid;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf;
+  display: none; min-width: 150px; padding: 2px;
+}
+.ctx-item { padding: 4px 16px; font-size: 12px; cursor: pointer; }
+.ctx-item:hover { background: #000080; color: white; }
+.ctx-sep { height: 1px; background: gray; margin: 3px 4px; border-bottom: 1px solid white; }
 
-        /* ========================================= */
-        /* ===   FIXED WINAMP STYLES (RESPONSIVE) === */
-        /* ========================================= */
-        
-        #win-winamp {
-            position: absolute;
-            width: 275px; 
-            height: 116px; 
-            background: #202020; 
-            display: none;
-            flex-direction: column;
-            
-            /* DESKTOP SCALE: 1.6x looks good on big screens */
-            transform: scale(1.6); 
-            transform-origin: top left;
-            transition: transform 0.1s steps(2);
-            
-            border-top: 1px solid #5d5d5d;
-            border-left: 1px solid #5d5d5d;
-            border-right: 1px solid #000;
-            border-bottom: 1px solid #000;
-            box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            box-sizing: content-box;
-            font-family: Arial, sans-serif;
-            image-rendering: pixelated; 
-        }
+/* ============================================================ */
+/* WINAMP */
+/* ============================================================ */
+#win-winamp {
+  position: absolute; width: 275px; height: 116px;
+  background: #202020; display: none; flex-direction: column;
+  transform: scale(1.6); transform-origin: top left;
+  border: 1px solid #5d5d5d; border-right-color: #000; border-bottom-color: #000;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.6); font-family: Arial, sans-serif;
+  image-rendering: pixelated; padding: 0;
+}
+#win-winamp.winamp-double { transform: scale(2.5) !important; }
+@media (max-width: 600px) { #win-winamp { transform: scale(1.2) !important; } }
+#win-winamp * { box-sizing: border-box; outline: none; }
+.wa-title-bar { height: 14px; background: #202020; display: flex; cursor: default; position: relative; border-bottom: 1px solid black; }
+.wa-grip { flex-grow: 1; margin: 2px 2px 0 2px; height: 10px; background: repeating-linear-gradient(90deg, #3a3a3a 0px, #3a3a3a 1px, #000 1px, #000 2px); position: relative; }
+.wa-title-text { position: absolute; top: -2px; left: 4px; font-family: monospace; font-size: 9px; color: #d0d0d0; background: #202020; padding-right: 4px; pointer-events: none; }
+#win-winamp .wa-mini-btn { width: 9px; height: 9px; background: silver; border: 1px outset white; font-size: 7px; line-height: 7px; text-align: center; cursor: pointer; margin-top: 2px; margin-right: 2px; padding: 0; min-width: 0; min-height: 0; box-shadow: none; border-radius: 0; color: black; }
+#win-winamp .wa-mini-btn:active { border: 1px inset white; }
+.winamp-face { padding: 4px 5px 5px 5px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 42px 14px 14px 20px; gap: 2px; }
+.wa-screen-container { grid-column: 1 / span 2; background: #111; border: 1px solid #484848; border-right-color: #5d5d5d; border-bottom-color: #5d5d5d; display: flex; }
+.wa-vis-box { width: 76px; height: 100%; border-right: 1px solid #333; background: black; cursor: pointer; }
+.wa-info-box { flex-grow: 1; display: flex; flex-direction: column; padding: 2px 4px; overflow: hidden; justify-content: center; }
+.wa-time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.wa-timer { font-family: monospace; font-size: 18px; color: #00E000; letter-spacing: 1px; line-height: 18px; }
+.wa-kbps { font-size: 9px; color: #00E000; font-family: Arial; }
+.wa-marquee { white-space: nowrap; font-family: monospace; font-size: 9px; color: #00E000; overflow: hidden; width: 100%; }
+.wa-marquee span { display: inline-block; animation: marquee 12s linear infinite; }
+@keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.wa-sliders-row { grid-column: 1 / span 2; display: flex; gap: 5px; align-items: center; }
+.wa-slider-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+.wa-label { font-size: 7px; font-family: Arial; color: #aaa; margin-bottom: -3px; z-index: 1; }
+#wa-eq-btn { width: 20px; height: 14px; background: silver; border: 1px outset white; font-size: 7px; text-align: center; line-height: 13px; cursor: pointer; margin-top: 5px; color: #555; font-weight: bold; flex-shrink: 0; }
+#wa-eq-btn.active { border: 1px inset white; background: #00E000; color: black; }
+#win-winamp input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; border: none; box-shadow: none; }
+#win-winamp input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #111; border-bottom: 1px solid #555; }
+#win-winamp input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 9px; width: 11px; background: silver; border: 1px outset white; margin-top: -3px; cursor: pointer; border-radius: 0; }
+.wa-progress-row { grid-column: 1 / span 2; padding-top: 4px; }
+.wa-progress-bg { width: 100%; height: 8px; background: #000; border-bottom: 1px solid #444; position: relative; cursor: pointer; }
+.wa-progress-fill { height: 100%; background: #00E000; width: 0%; }
+.wa-progress-knob { width: 10px; height: 8px; background: silver; border: 1px outset white; position: absolute; top: 0; margin-left: -5px; pointer-events: none; }
+.wa-controls-row { grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 2px; }
+#win-winamp button.wa-ctrl-btn { background: silver; border: 1px outset white; color: black; font-size: 9px; height: 18px; width: 23px; padding: 0; margin: 0; min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: center; box-shadow: none; border-radius: 0; cursor: pointer; }
+#win-winamp button.wa-ctrl-btn:active { border: 1px inset white; background: #a0a0a0; transform: translateY(1px); }
+#win-winamp button.wa-play-btn { width: 28px; }
+.wa-credits { font-size: 7px; color: #555; font-family: Arial; margin-left: auto; align-self: center; }
 
-        #win-winamp.winamp-double {
-            transform: scale(2.5) !important; 
-        }
+/* Winamp Playlist */
+#win-playlist {
+  position: absolute; width: 275px; background: #111; display: none;
+  flex-direction: column; transform: scale(1.6); transform-origin: top left;
+  border: 1px solid #5d5d5d; border-right-color: #000; border-bottom-color: #000;
+  font-family: Arial, sans-serif; image-rendering: pixelated;
+}
+@media (max-width: 600px) { #win-playlist { transform: scale(1.2) !important; } }
+.pl-title { height: 14px; background: #202020; display: flex; cursor: default; border-bottom: 1px solid black; }
+.pl-list { flex-grow: 1; overflow-y: auto; max-height: 120px; }
+.pl-list::-webkit-scrollbar { width: 8px; }
+.pl-list::-webkit-scrollbar-track { background: #111; }
+.pl-list::-webkit-scrollbar-thumb { background: silver; border: 1px outset white; }
+.pl-item { padding: 2px 6px; font-size: 9px; font-family: monospace; color: #aaa; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-item:hover { background: #000080; color: white; }
+.pl-item.active { color: #00E000; }
+.pl-status { padding: 2px 6px; font-size: 8px; color: #555; border-top: 1px solid #333; font-family: monospace; }
+.pl-actions { display: flex; background: #202020; padding: 2px; gap: 2px; border-top: 1px solid #333; }
+.pl-btn { background: silver; border: 1px outset white; color: black; font-size: 7px; padding: 1px 4px; cursor: pointer; min-width: 0; min-height: 0; }
+.pl-btn:active { border: 1px inset white; }
 
-        /* MOBILE OVERRIDE: Shrink Winamp if screen is small */
-        @media (max-width: 600px) {
-            #win-winamp {
-                /* 1.25x fits a 375px wide iPhone screen nicely */
-                transform: scale(1.25) !important;
-            }
-        }
+/* ============================================================ */
+/* NOTEPAD ENHANCED */
+/* ============================================================ */
+#win-notepad { width: 380px; height: 300px; }
+.notepad-menu { display: flex; gap: 0; padding: 1px; border-bottom: 1px solid #808080; }
+.notepad-menu-btn { padding: 2px 8px; font-size: 12px; cursor: pointer; background: transparent; border: none; }
+.notepad-menu-btn:hover { background: #000080; color: white; }
+.notepad-menu-btn.open { background: #e0e0e0; box-shadow: inset 1px 1px gray; }
+.notepad-dropdown {
+  position: fixed; background: silver; border: 1px solid;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf;
+  z-index: 600000; display: none; min-width: 130px;
+}
+.notepad-dropdown .ctx-item { padding: 3px 20px; font-size: 12px; cursor: pointer; }
+.notepad-dropdown .ctx-item:hover { background: #000080; color: white; }
+.notepad-dropdown .ctx-sep { height: 1px; background: gray; margin: 2px 4px; border-bottom: 1px solid white; }
+#notepad-area { flex-grow: 1; width: 100%; border: inset 2px #808080; resize: none; font-family: monospace; font-size: 13px; padding: 5px; background: white; color: black; outline: none; line-height: 1.5; }
+.notepad-status { font-size: 11px; padding: 2px 6px; border-top: 1px solid #808080; color: #333; display: flex; justify-content: space-between; }
 
-        #win-winamp * {
-            box-sizing: border-box;
-            outline: none;
-        }
+/* ============================================================ */
+/* MY COMPUTER */
+/* ============================================================ */
+#win-computer { width: 340px; height: 300px; }
+.explorer-toolbar { display: flex; align-items: center; gap: 2px; padding: 2px; border-bottom: 1px solid #808080; }
+.explorer-toolbar button { font-size: 11px; height: 22px; padding: 0 6px; }
+.explorer-addr { flex-grow: 1; margin: 0 4px; border: inset 2px; padding: 1px 4px; font-size: 11px; background: white; }
+.explorer-pane { flex-grow: 1; display: flex; overflow: hidden; }
+.explorer-tree { width: 100px; border-right: 1px solid #808080; background: white; border-bottom: inset 2px; overflow-y: auto; padding: 4px; font-size: 11px; }
+.tree-item { padding: 2px 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.tree-item:hover { background: #000080; color: white; }
+.tree-item img { width: 16px; height: 16px; object-fit: contain; }
+.explorer-content { flex-grow: 1; background: white; border: inset 2px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 8px; overflow-y: auto; }
+.explorer-icon { width: 72px; text-align: center; cursor: pointer; padding: 4px; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.explorer-icon img { width: 32px; height: 32px; object-fit: contain; }
+.explorer-icon:hover { background: #000080; color: white; }
+.explorer-status { padding: 2px 6px; font-size: 11px; border-top: 1px solid #808080; color: #333; }
 
-        /* Standard Winamp CSS (Unchanged) */
-        .wa-title-bar { height: 14px; background: #202020; display: flex; cursor: default; position: relative; margin-bottom: 0; border-bottom: 1px solid black; }
-        .wa-grip { flex-grow: 1; margin: 2px 2px 0 2px; height: 10px; background: repeating-linear-gradient(90deg, #3a3a3a 0px, #3a3a3a 1px, #000 1px, #000 2px); position: relative; }
-        .wa-title-text { position: absolute; top: -2px; left: 4px; font-family: monospace; font-size: 9px; color: #d0d0d0; background: #202020; padding-right: 4px; pointer-events: none; }
-        #win-winamp .wa-mini-btn { width: 9px; height: 9px; background: silver; border: 1px outset white; font-size: 8px; line-height: 7px; text-align: center; cursor: pointer; margin-top: 3px; margin-right: 2px; padding: 0; min-width: 0; min-height: 0; box-shadow: none; border-radius: 0; color: black; }
-        #win-winamp .wa-mini-btn:active { border: 1px inset white; }
-        .winamp-face { padding: 4px 5px 5px 5px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 42px 14px 14px 20px; gap: 2px; }
-        .wa-screen-container { grid-column: 1 / span 2; background: #111; border: 1px solid #484848; border-right: 1px solid #5d5d5d; border-bottom: 1px solid #5d5d5d; display: flex; height: 100%; }
-        .wa-vis-box { width: 76px; height: 100%; border-right: 1px solid #333; background: black; cursor: pointer; }
-        .wa-info-box { flex-grow: 1; display: flex; flex-direction: column; padding: 2px 4px; overflow: hidden; justify-content: center; }
-        .wa-time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-        .wa-timer { font-family: monospace; font-size: 18px; color: #00E000; letter-spacing: 1px; line-height: 18px; }
-        .wa-kbps { font-size: 9px; color: #00E000; font-family: Arial; }
-        .wa-marquee { white-space: nowrap; font-family: monospace; font-size: 9px; color: #00E000; overflow: hidden; width: 100%; position: relative; }
-        .wa-marquee span { display: inline-block; animation: marquee 10s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .wa-sliders-row { grid-column: 1 / span 2; display: flex; gap: 5px; align-items: center; }
-        .wa-slider-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100%; justify-content: center; }
-        .wa-label { font-size: 8px; font-family: Arial; color: silver; margin-bottom: -4px; z-index: 1;}
-        #wa-eq-btn { width: 20px; height: 14px; background: silver; border: 1px outset white; font-size: 8px; text-align: center; line-height: 13px; cursor: pointer; margin-top: 5px; color: #555; font-weight: bold; }
-        #wa-eq-btn.active { border: 1px inset white; background: #00E000; color: black; box-shadow: 0 0 2px #00ff00; }
-        #win-winamp input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; border: none; box-shadow: none; }
-        #win-winamp input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #111; border-bottom: 1px solid #555; }
-        #win-winamp input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 9px; width: 11px; background: silver; border: 1px outset white; margin-top: -3px; cursor: pointer; border-radius: 0; }
-        .wa-progress-row { grid-column: 1 / span 2; padding-top: 4px; }
-        .wa-progress-bg { width: 100%; height: 8px; background: #000; border-bottom: 1px solid #444; position: relative; cursor: pointer; }
-        .wa-progress-fill { height: 100%; background: #00E000; width: 0%; }
-        .wa-progress-knob { width: 10px; height: 8px; background: silver; border: 1px outset white; position: absolute; top: 0; margin-left: -5px; pointer-events: none; }
-        .wa-controls-row { grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 2px; }
-        #win-winamp button.wa-ctrl-btn { background: silver; border: 1px outset white; color: black; font-size: 9px; height: 18px; width: 23px; padding: 0; margin: 0; min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: center; box-shadow: none; border-radius: 0; }
-        #win-winamp button.wa-ctrl-btn:active { border: 1px inset white; background: #a0a0a0; transform: translateY(1px); }
-        #win-winamp button.wa-play-btn { width: 28px; }
-        .wa-credits { font-size: 8px; color: #666; font-family: Arial; margin-left: auto; align-self: center; }
-        
-        /* Icons */
-        .icon-prev::after { content: "⏮"; font-size: 9px; }
-        .icon-play::after { content: "▶"; font-size: 9px; }
-        .icon-pause::after { content: "⏸"; font-size: 9px; }
-        .icon-stop::after { content: "⏹"; font-size: 9px; }
-        .icon-next::after { content: "⏭"; font-size: 9px; }
-        .icon-eject::after { content: "⏏"; font-size: 9px; }
-    </style>
+/* ============================================================ */
+/* PROJECTS WINDOW */
+/* ============================================================ */
+#win-projects { width: 480px; height: 360px; }
+.projects-list { flex-grow: 1; background: white; border: inset 2px; display: flex; flex-wrap: wrap; align-content: flex-start; padding: 10px; gap: 12px; overflow-y: auto; }
+.project-icon { width: 80px; text-align: center; cursor: pointer; padding: 4px; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid transparent; }
+.project-icon:hover { background: #000080; color: white; border: 1px dotted white; }
+.project-icon:active { background: #000060; }
+.project-icon img { width: 40px; height: 40px; object-fit: contain; }
+
+/* Project Detail Window */
+.win-project-detail { width: 360px; }
+.proj-detail-body { background: white; border: inset 2px; padding: 12px; overflow-y: auto; max-height: 280px; font-size: 12px; line-height: 1.5; color: #111; }
+.proj-detail-body h3 { margin: 0 0 8px; font-size: 14px; color: #000080; border-bottom: 2px solid #000080; padding-bottom: 4px; }
+.proj-detail-body .proj-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.proj-detail-body .proj-tag { background: #c0c0c0; border: 1px outset white; padding: 1px 6px; font-size: 11px; font-family: monospace; }
+.proj-detail-body .proj-links { margin-top: 10px; display: flex; gap: 8px; }
+.proj-detail-body .proj-links a { color: #0000ff; text-decoration: underline; cursor: pointer; font-size: 12px; }
+
+/* ============================================================ */
+/* INTERNET EXPLORER (About Me) */
+/* ============================================================ */
+#win-ie { width: 500px; height: 420px; }
+.ie-toolbar { display: flex; align-items: center; gap: 2px; padding: 2px; border-bottom: 1px solid #808080; }
+.ie-toolbar button { height: 22px; font-size: 11px; padding: 0 6px; }
+.ie-addr-bar { flex-grow: 1; margin: 0 4px; border: inset 2px; padding: 1px 5px; font-size: 12px; background: white; font-family: monospace; }
+.ie-go-btn { height: 22px; padding: 0 8px; font-size: 11px; }
+.ie-content { flex-grow: 1; background: white; border: inset 2px; overflow-y: auto; }
+.ie-page { padding: 20px 24px; font-family: Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #111; }
+.ie-page h1 { font-size: 22px; color: #000080; border-bottom: 3px double #000080; padding-bottom: 6px; margin: 0 0 14px; }
+.ie-page h2 { font-size: 15px; color: #000080; margin: 16px 0 6px; }
+.ie-page .skill-bar-wrap { background: #ddd; border: inset 2px; height: 14px; margin: 2px 0 6px; }
+.ie-page .skill-bar { height: 100%; background: linear-gradient(90deg, #000080, #0000cc); }
+.ie-page table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+.ie-page td, .ie-page th { border: 1px solid #999; padding: 4px 8px; font-size: 12px; }
+.ie-page th { background: #000080; color: white; }
+.ie-page tr:nth-child(even) { background: #f0f0f0; }
+.ie-status { padding: 2px 6px; font-size: 11px; border-top: 1px solid #808080; display: flex; align-items: center; gap: 6px; }
+.ie-loading-bar { width: 80px; height: 8px; border: inset 2px; background: #ddd; overflow: hidden; }
+.ie-loading-fill { height: 100%; background: #000080; width: 0%; transition: width 0.4s; }
+
+/* ============================================================ */
+/* MINESWEEPER */
+/* ============================================================ */
+#win-minesweeper { width: auto; }
+.ms-toolbar { display: flex; align-items: center; gap: 4px; padding: 4px; border-bottom: 2px inset; background: silver; justify-content: space-between; }
+.ms-counter { font-family: monospace; font-size: 22px; color: red; background: black; padding: 2px 6px; border: 2px inset; min-width: 50px; text-align: center; }
+.ms-face-btn { width: 26px; height: 26px; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px outset white; background: silver; }
+.ms-face-btn:active { border: 2px inset white; }
+.ms-grid { display: grid; border: 3px inset; margin: 4px; background: silver; }
+.ms-cell {
+  width: 20px; height: 20px; border: 2px outset white; background: silver;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: bold; font-family: Arial; cursor: pointer;
+  user-select: none;
+}
+.ms-cell.revealed { border: 1px solid #808080; background: silver; cursor: default; }
+.ms-cell.flagged { background: silver; }
+.ms-cell.mine-hit { background: red; }
+.ms-cell[data-n="1"] { color: blue; }
+.ms-cell[data-n="2"] { color: green; }
+.ms-cell[data-n="3"] { color: red; }
+.ms-cell[data-n="4"] { color: darkblue; }
+.ms-cell[data-n="5"] { color: maroon; }
+.ms-cell[data-n="6"] { color: teal; }
+.ms-cell[data-n="7"] { color: black; }
+.ms-cell[data-n="8"] { color: gray; }
+.ms-difficulty { display: flex; gap: 4px; padding: 2px 4px; border-bottom: 1px solid #808080; font-size: 11px; align-items: center; }
+.ms-difficulty button { font-size: 10px; height: 18px; padding: 0 5px; }
+
+/* ============================================================ */
+/* MS PAINT */
+/* ============================================================ */
+#win-paint { width: 540px; height: 420px; }
+.paint-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-bottom: 1px solid #808080; align-items: center; }
+.paint-tool-group { border: 2px inset; padding: 2px; display: flex; flex-wrap: wrap; gap: 1px; }
+.pt-btn { width: 26px; height: 26px; border: 1px outset white; background: silver; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.pt-btn:active, .pt-btn.active { border: 1px inset white; background: #c0c0c0; }
+.paint-color-area { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+.paint-current-colors { position: relative; width: 30px; height: 26px; }
+.paint-bg-color { position: absolute; bottom: 0; right: 0; width: 18px; height: 18px; border: 1px solid black; }
+.paint-fg-color { position: absolute; top: 0; left: 0; width: 18px; height: 18px; border: 1px solid black; z-index: 1; cursor: pointer; }
+.paint-palette { display: flex; flex-wrap: wrap; width: 160px; }
+.paint-swatch { width: 16px; height: 14px; border: 1px outset white; cursor: pointer; flex-shrink: 0; }
+.paint-swatch:active { border: 1px inset white; }
+.paint-canvas-wrap { flex-grow: 1; background: #808080; border: inset 2px; overflow: auto; display: flex; align-items: flex-start; justify-content: flex-start; padding: 4px; }
+#paint-canvas { display: block; cursor: crosshair; image-rendering: pixelated; }
+.paint-size-area { display: flex; flex-direction: column; gap: 2px; }
+.size-dot { background: black; border-radius: 50%; cursor: pointer; margin: 0 auto; }
+.size-dot.active-size { outline: 2px solid #000080; }
+.paint-status { padding: 2px 6px; font-size: 11px; border-top: 1px solid #808080; display: flex; gap: 12px; color: #333; }
+
+/* ============================================================ */
+/* COMMAND PROMPT */
+/* ============================================================ */
+#win-cmd { width: 480px; height: 300px; }
+#cmd-screen {
+  flex-grow: 1; background: #000000; color: #c0c0c0;
+  font-family: 'Courier New', monospace; font-size: 13px;
+  padding: 6px; overflow-y: auto; cursor: text;
+  border: inset 2px;
+  white-space: pre-wrap; word-break: break-word;
+}
+#cmd-input-line { display: flex; padding: 2px 6px; background: #000; border-top: 1px solid #333; }
+#cmd-prompt-label { color: #c0c0c0; font-family: monospace; font-size: 13px; white-space: nowrap; padding-top: 2px; }
+#cmd-input { flex-grow: 1; background: transparent; border: none; color: #c0c0c0; font-family: 'Courier New', monospace; font-size: 13px; outline: none; caret-color: white; }
+
+/* ============================================================ */
+/* RECYCLE BIN */
+/* ============================================================ */
+#win-recycle { width: 300px; height: 220px; }
+.recycle-content { flex-grow: 1; background: white; border: inset 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; }
+.recycle-item { display: flex; align-items: center; gap: 8px; font-size: 12px; width: 100%; padding: 3px 6px; }
+.recycle-item:hover { background: #000080; color: white; }
+.recycle-item img { width: 20px; height: 20px; object-fit: contain; }
+
+/* ============================================================ */
+/* CLOCK WIDGET (on desktop) */
+/* ============================================================ */
+#desk-clock {
+  position: absolute; bottom: 8px; right: 8px;
+  color: white; font-family: monospace; font-size: 11px;
+  text-shadow: 1px 1px 2px black;
+  text-align: right; line-height: 1.5; pointer-events: none;
+}
+
+/* ============================================================ */
+/* SCROLL BARS GLOBAL */
+/* ============================================================ */
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: silver; border: 1px solid; }
+::-webkit-scrollbar-thumb { background: silver; border: 1px outset white; }
+::-webkit-scrollbar-button { background: silver; border: 1px outset white; display: block; height: 14px; }
+
+/* ============================================================ */
+/* ANIMATIONS */
+/* ============================================================ */
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+.cursor-blink { animation: blink 1s step-end infinite; }
+</style>
 </head>
 <body>
 
-    <input type="file" id="wa-file-input" multiple accept="audio/*" style="display: none;" onchange="winamp.handleFiles(this.files)">
+<!-- ========================================================= -->
+<!-- BOOT SCREEN                                                -->
+<!-- ========================================================= -->
+<div id="boot-screen">
+  <div class="boot-logo">Windows 98</div>
+  <div class="boot-sub">Portfolio Edition &nbsp;•&nbsp; Starting up...</div>
+  <div class="boot-bar-wrap"><div class="boot-bar-fill" id="boot-fill"></div></div>
+  <div class="boot-msg" id="boot-msg">Loading system files...</div>
+</div>
 
-    <div id="desktop-area">
-        <div class="desktop-icon" style="top: 20px; left: 20px;" 
-             ondblclick="os.openWindow('computer')" ontouchend="os.handleDoubleTap(event, 'computer')">
-            <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"><span>My Computer</span>
-        </div>
-        
-        <div class="desktop-icon" style="top: 120px; left: 20px;" 
-             ondblclick="os.openWindow('recycle')" ontouchend="os.handleDoubleTap(event, 'recycle')">
-            <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png"><span>Recycle Bin</span>
-        </div>
-        
-        <div class="desktop-icon" style="top: 220px; left: 20px;" 
-             ondblclick="os.openWindow('notepad')" ontouchend="os.handleDoubleTap(event, 'notepad')">
-            <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"><span>Notepad</span>
-        </div>
-        
-        <div class="desktop-icon" style="top: 20px; left: 120px;" 
-             ondblclick="os.openWindow('winamp')" ontouchend="os.handleDoubleTap(event, 'winamp')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"><span>Winamp</span>
-        </div>
+<!-- file input for Winamp -->
+<input type="file" id="wa-file-input" multiple accept="audio/*" style="display:none;" onchange="winamp.handleFiles(this.files)">
+
+<!-- ========================================================= -->
+<!-- DESKTOP                                                    -->
+<!-- ========================================================= -->
+<div id="desktop-area">
+  <!-- Left column -->
+  <div class="desktop-icon" style="top:15px;left:15px" ondblclick="os.openWindow('computer')" ontouchend="os.handleDoubleTap(event,'computer')">
+    <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"><span>My Computer</span>
+  </div>
+  <div class="desktop-icon" style="top:105px;left:15px" ondblclick="os.openWindow('recycle')" ontouchend="os.handleDoubleTap(event,'recycle')">
+    <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png"><span>Recycle Bin</span>
+  </div>
+  <div class="desktop-icon" style="top:195px;left:15px" ondblclick="os.openWindow('notepad')" ontouchend="os.handleDoubleTap(event,'notepad')">
+    <img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"><span>Notepad</span>
+  </div>
+  <div class="desktop-icon" style="top:285px;left:15px" ondblclick="os.openWindow('ie')" ontouchend="os.handleDoubleTap(event,'ie')">
+    <img src="https://win98icons.alexmeub.com/icons/png/msie1-1.png"><span>About Me</span>
+  </div>
+  <!-- Right column -->
+  <div class="desktop-icon" style="top:15px;left:105px" ondblclick="os.openWindow('projects')" ontouchend="os.handleDoubleTap(event,'projects')">
+    <img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png"><span>Projects</span>
+  </div>
+  <div class="desktop-icon" style="top:105px;left:105px" ondblclick="os.openWindow('winamp')" ontouchend="os.handleDoubleTap(event,'winamp')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"><span>Winamp</span>
+  </div>
+  <div class="desktop-icon" style="top:195px;left:105px" ondblclick="os.openWindow('paint')" ontouchend="os.handleDoubleTap(event,'paint')">
+    <img src="https://win98icons.alexmeub.com/icons/png/paint_old-1.png"><span>MS Paint</span>
+  </div>
+  <div class="desktop-icon" style="top:285px;left:105px" ondblclick="os.openWindow('minesweeper')" ontouchend="os.handleDoubleTap(event,'minesweeper')">
+    <img src="https://win98icons.alexmeub.com/icons/png/minesweeper-0.png"><span>Minesweeper</span>
+  </div>
+  <div class="desktop-icon" style="top:375px;left:15px" ondblclick="os.openWindow('cmd')" ontouchend="os.handleDoubleTap(event,'cmd')">
+    <img src="https://win98icons.alexmeub.com/icons/png/ms_dos-4.png"><span>Command Prompt</span>
+  </div>
+
+  <div id="desk-clock"></div>
+</div>
+
+<!-- ========================================================= -->
+<!-- WINDOW AREA                                                -->
+<!-- ========================================================= -->
+<div id="window-area">
+
+  <!-- ===== NOTEPAD ===== -->
+  <div id="win-notepad" class="window" style="left:60px;top:50px">
+    <div class="title-bar">
+      <div class="title-bar-text">Untitled - Notepad</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-notepad')"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-notepad')"></button>
+      </div>
     </div>
-
-    <div id="window-area">
-        <div id="win-notepad" class="window" style="left: 50px; top: 50px; width: 300px; height: 300px;">
-            <div class="title-bar">
-                <div class="title-bar-text">Notepad</div>
-                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-notepad')"></button></div>
-            </div>
-            <div class="window-body"><textarea style="width: 100%; height: 100%; border: none; font-family: monospace; padding: 5px;">Type here...</textarea></div>
-        </div>
-        
-        <div id="win-computer" class="window" style="left: 20px; top: 40px; width: 300px; height: 300px;">
-            <div class="title-bar">
-                <div class="title-bar-text">My Computer</div>
-                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-computer')"></button></div>
-            </div>
-            <div class="window-body" style="background: white; border: inset 2px;"><div style="padding: 10px;">C: Drive</div></div>
-        </div>
-        
-        <div id="win-recycle" class="window" style="left: 60px; top: 100px;">
-            <div class="title-bar">
-                <div class="title-bar-text">Recycle Bin</div>
-                <div class="title-bar-controls"><button aria-label="Close" onclick="os.closeWindow('win-recycle')"></button></div>
-            </div>
-            <div class="window-body" style="background: white; border: inset 2px;"><p style="padding:10px;">Empty.</p></div>
-        </div>
-
-        <div id="win-winamp" style="left: 400px; top: 100px;">
-            <div class="wa-title-bar title-bar">
-                <div class="wa-grip">
-                    <div class="wa-title-text">WINAMP</div>
-                </div>
-                <div class="wa-mini-btn" onclick="os.minimizeWindow('win-winamp')">_</div>
-                <div class="wa-mini-btn" onclick="os.closeWindow('win-winamp')">x</div>
-            </div>
-
-            <div class="winamp-face">
-                <div class="wa-screen-container">
-                    <div class="wa-vis-box" onclick="winamp.toggleVisMode()" title="Toggle Visualizer">
-                        <canvas id="wa-vis" width="76" height="40"></canvas>
-                    </div>
-                    <div class="wa-info-box">
-                        <div class="wa-time-row">
-                            <div id="wa-timer" class="wa-timer">00:00</div>
-                            <div class="wa-kbps">128 kbps</div>
-                        </div>
-                        <div class="wa-marquee">
-                            <span id="wa-title">Winamp 2.91</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="wa-sliders-row">
-                    <div class="wa-slider-wrapper" style="width: 50%;">
-                        <div class="wa-label">VOLUME</div>
-                        <input type="range" id="wa-vol-input" min="0" max="1" step="0.05" value="0.8" oninput="winamp.setVolume(this.value)">
-                    </div>
-                    <div id="wa-eq-btn" onclick="winamp.toggleEQ()" title="Bass Boost">EQ</div>
-                    <div class="wa-slider-wrapper" style="width: 30%;">
-                        <div class="wa-label">BALANCE</div>
-                        <input type="range" min="-1" max="1" step="0.1" value="0">
-                    </div>
-                </div>
-
-                <div class="wa-progress-row">
-                    <div class="wa-progress-bg" onclick="winamp.seek(event)">
-                        <div id="wa-bar" class="wa-progress-fill"></div>
-                        <div id="wa-thumb" class="wa-progress-knob" style="left: 0%;"></div>
-                    </div>
-                </div>
-
-                <div class="wa-controls-row">
-                    <button class="wa-ctrl-btn icon-prev" onclick="winamp.prev()"></button>
-                    <button class="wa-ctrl-btn icon-play wa-play-btn" onclick="winamp.play()"></button>
-                    <button class="wa-ctrl-btn icon-pause" onclick="winamp.pause()"></button>
-                    <button class="wa-ctrl-btn icon-stop" onclick="winamp.stop()"></button>
-                    <button class="wa-ctrl-btn icon-next" onclick="winamp.next()"></button>
-                    <div style="width: 5px;"></div>
-                    <button class="wa-ctrl-btn icon-eject" onclick="document.getElementById('wa-file-input').click()"></button>
-                    <div class="wa-credits">NULLSOFT</div>
-                </div>
-            </div>
-            <audio id="wa-audio" crossorigin="anonymous"></audio>
-        </div>
+    <div class="notepad-menu">
+      <button class="notepad-menu-btn" onclick="notepadApp.toggleMenu('file',this)">File</button>
+      <button class="notepad-menu-btn" onclick="notepadApp.toggleMenu('edit',this)">Edit</button>
+      <button class="notepad-menu-btn" onclick="notepadApp.toggleMenu('format',this)">Format</button>
     </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <textarea id="notepad-area" spellcheck="false" oninput="notepadApp.updateStatus()">Welcome to Notepad!
 
-    <div id="start-menu" class="window">
-        <div class="start-sidebar"><div class="sidebar-text"><strong>Windows</strong><span>98</span></div></div>
-        <div class="start-items">
-            <div class="start-item" onclick="os.openWindow('computer')"><img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"> My Computer</div>
-            <div class="start-item" onclick="os.openWindow('notepad')"><img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"> Notepad</div>
-            <div class="start-item" onclick="os.openWindow('winamp')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"> Winamp</div>
-            <div style="height: 1px; background: gray; margin: 4px 0; border-bottom: 1px solid white;"></div>
-            <div class="start-item" onclick="location.reload()"><img src="https://win98icons.alexmeub.com/icons/png/shut_down_cool-4.png"> Shut Down...</div>
+This is your portfolio's Notepad app.
+Start typing to create notes...
+
+Keyboard shortcuts:
+  Ctrl+S  → Save (download)
+  Ctrl+A  → Select All
+  Ctrl+Z  → Undo
+</textarea>
+      <div class="notepad-status">
+        <span id="notepad-chars">Characters: 0</span>
+        <span id="notepad-words">Words: 0</span>
+        <span id="notepad-lines">Lines: 1</span>
+      </div>
+    </div>
+    <div class="resize-se" id="notepad-resize"></div>
+  </div>
+
+  <!-- Notepad Dropdowns -->
+  <div class="notepad-dropdown" id="menu-file">
+    <div class="ctx-item" onclick="notepadApp.newFile()">New</div>
+    <div class="ctx-item" onclick="notepadApp.openFile()">Open...</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="notepadApp.saveFile()">Save</div>
+    <div class="ctx-item" onclick="notepadApp.saveFile('txt')">Save As .txt</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="os.closeWindow('win-notepad')">Exit</div>
+  </div>
+  <div class="notepad-dropdown" id="menu-edit">
+    <div class="ctx-item" onclick="document.execCommand('undo')">Undo</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="notepadApp.cutText()">Cut</div>
+    <div class="ctx-item" onclick="notepadApp.copyText()">Copy</div>
+    <div class="ctx-item" onclick="notepadApp.pasteText()">Paste</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="notepadApp.selectAll()">Select All</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="notepadApp.insertTimestamp()">Time/Date</div>
+  </div>
+  <div class="notepad-dropdown" id="menu-format">
+    <div class="ctx-item" onclick="notepadApp.setFont(12)">Small Font (12px)</div>
+    <div class="ctx-item" onclick="notepadApp.setFont(14)">Normal Font (14px)</div>
+    <div class="ctx-item" onclick="notepadApp.setFont(18)">Large Font (18px)</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="notepadApp.toggleWrap()">Word Wrap</div>
+    <div class="ctx-item" onclick="notepadApp.toggleFont()">Monospace / Sans-Serif</div>
+  </div>
+
+  <!-- ===== MY COMPUTER ===== -->
+  <div id="win-computer" class="window" style="left:40px;top:60px">
+    <div class="title-bar">
+      <div class="title-bar-text">My Computer</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-computer')"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-computer')"></button>
+      </div>
+    </div>
+    <div class="explorer-toolbar">
+      <button onclick="computerApp.goBack()">◀ Back</button>
+      <button onclick="computerApp.goForward()">▶ Forward</button>
+      <button onclick="computerApp.goUp()">▲ Up</button>
+      <span class="explorer-addr" id="computer-addr">My Computer</span>
+    </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div class="explorer-pane">
+        <div class="explorer-tree" id="computer-tree">
+          <div class="tree-item" onclick="computerApp.navigate('root')">
+            <img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"> My Computer
+          </div>
+          <div class="tree-item" style="padding-left:16px" onclick="computerApp.navigate('c')">
+            <img src="https://win98icons.alexmeub.com/icons/png/drive_fixed-4.png"> Local Disk (C:)
+          </div>
+          <div class="tree-item" style="padding-left:16px" onclick="computerApp.navigate('d')">
+            <img src="https://win98icons.alexmeub.com/icons/png/drive_cd-4.png"> CD-ROM (D:)
+          </div>
+          <div class="tree-item" style="padding-left:28px" onclick="computerApp.navigate('projects')">
+            <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png"> Projects
+          </div>
+          <div class="tree-item" style="padding-left:28px" onclick="computerApp.navigate('music')">
+            <img src="https://win98icons.alexmeub.com/icons/png/directory_closed-4.png"> Music
+          </div>
         </div>
+        <div class="explorer-content" id="computer-content"></div>
+      </div>
+      <div class="explorer-status" id="computer-status">5 object(s)</div>
     </div>
+    <div class="resize-se"></div>
+  </div>
 
-    <div id="taskbar">
-        <button id="start-btn" class="start-btn" onclick="os.toggleStartMenu()"><img src="https://win98icons.alexmeub.com/icons/png/windows-0.png"> Start</button>
-        <div style="width: 2px; height: 20px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 4px;"></div>
-        <div id="taskbar-list"></div>
-        <div style="width: 2px; height: 20px; border-left: 1px solid gray; border-right: 1px solid white; margin: 0 4px;"></div>
-        <div id="tray"><span id="clock">12:00 PM</span></div>
+  <!-- ===== RECYCLE BIN ===== -->
+  <div id="win-recycle" class="window" style="left:80px;top:100px">
+    <div class="title-bar">
+      <div class="title-bar-text">Recycle Bin</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-recycle')"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-recycle')"></button>
+      </div>
     </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column">
+      <div class="explorer-toolbar">
+        <button onclick="recycleApp.empty()">Empty Recycle Bin</button>
+      </div>
+      <div class="recycle-content" id="recycle-content">
+        <div style="text-align:center;color:#888;font-size:12px;padding:20px">
+          <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" style="width:48px;height:48px;display:block;margin:0 auto 8px;opacity:0.5"><br>
+          The Recycle Bin is empty.
+        </div>
+      </div>
+      <div class="explorer-status" id="recycle-status">0 items</div>
+    </div>
+  </div>
 
-    <script>
-        const DEFAULT_PLAYLIST = [];
+  <!-- ===== PROJECTS ===== -->
+  <div id="win-projects" class="window" style="left:100px;top:40px">
+    <div class="title-bar">
+      <div class="title-bar-text">Projects</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-projects')"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-projects')"></button>
+      </div>
+    </div>
+    <div class="explorer-toolbar">
+      <span style="font-size:11px;padding:2px 6px;">📁 C:\Projects — Double-click a project to view details</span>
+    </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div class="projects-list" id="projects-list"></div>
+      <div class="explorer-status" id="projects-status">6 projects</div>
+    </div>
+    <div class="resize-se"></div>
+  </div>
 
-        class WinampApp {
-            constructor() {
-                this.audio = document.getElementById('wa-audio');
-                this.canvas = document.getElementById('wa-vis');
-                this.ctx = this.canvas.getContext('2d');
-                this.timerEl = document.getElementById('wa-timer');
-                this.barEl = document.getElementById('wa-bar');
-                this.thumbEl = document.getElementById('wa-thumb');
-                this.titleEl = document.getElementById('wa-title');
-                this.eqBtn = document.getElementById('wa-eq-btn');
-                
-                this.isPlaying = false;
-                this.visInterval = null;
-                this.audioCtx = null;
-                this.analyser = null;
-                this.source = null;
-                this.bassFilter = null; 
-                this.isVisConnected = false;
-                this.visMode = 'bars';
-                this.dataArray = null;
-                this.playlist = [...DEFAULT_PLAYLIST];
-                this.currentIndex = 0;
-                this.bassEnabled = false;
+  <!-- ===== INTERNET EXPLORER (About Me) ===== -->
+  <div id="win-ie" class="window" style="left:80px;top:30px">
+    <div class="title-bar">
+      <div class="title-bar-text">About Me - Microsoft Internet Explorer</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-ie')"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-ie')"></button>
+      </div>
+    </div>
+    <div class="ie-toolbar">
+      <button onclick="ieApp.back()">◀ Back</button>
+      <button onclick="ieApp.forward()">▶ Forward</button>
+      <button onclick="ieApp.reload()">🔄</button>
+      <input class="ie-addr-bar" id="ie-addr" value="about:me" readonly>
+      <button class="ie-go-btn" onclick="ieApp.go()">Go</button>
+    </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div class="ie-content" id="ie-content"></div>
+      <div class="ie-status">
+        <span id="ie-status-text">Done</span>
+        <div class="ie-loading-bar"><div class="ie-loading-fill" id="ie-load-bar"></div></div>
+        <span style="margin-left:auto;font-size:11px;color:#333;">Internet zone</span>
+      </div>
+    </div>
+    <div class="resize-se"></div>
+  </div>
 
-                this.setupEvents();
-                this.loadState(); 
-                
-                if(this.playlist.length > 0) this.loadTrack(0, false);
-                else this.titleEl.innerText = "Winamp 2.91";
-            }
+  <!-- ===== MINESWEEPER ===== -->
+  <div id="win-minesweeper" class="window" style="left:200px;top:80px">
+    <div class="title-bar">
+      <div class="title-bar-text">Minesweeper</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-minesweeper')"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-minesweeper')"></button>
+      </div>
+    </div>
+    <div class="ms-difficulty">
+      <span style="font-size:11px">Difficulty:</span>
+      <button onclick="mineApp.setDifficulty('beginner')">Beginner</button>
+      <button onclick="mineApp.setDifficulty('intermediate')">Intermediate</button>
+      <button onclick="mineApp.setDifficulty('expert')">Expert</button>
+    </div>
+    <div class="ms-toolbar">
+      <div class="ms-counter" id="ms-mines">010</div>
+      <div class="ms-face-btn" id="ms-face" onclick="mineApp.reset()">🙂</div>
+      <div class="ms-counter" id="ms-timer">000</div>
+    </div>
+    <div class="ms-grid" id="ms-grid"></div>
+  </div>
 
-            vibrate() {
-                if(navigator.vibrate) navigator.vibrate(5);
-            }
+  <!-- ===== MS PAINT ===== -->
+  <div id="win-paint" class="window" style="left:70px;top:40px">
+    <div class="title-bar">
+      <div class="title-bar-text">untitled - Paint</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-paint')"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-paint')"></button>
+      </div>
+    </div>
+    <div class="paint-toolbar">
+      <div class="paint-tool-group" id="paint-tools">
+        <div class="pt-btn active" data-tool="pencil" title="Pencil" onclick="paintApp.setTool(this)">✏️</div>
+        <div class="pt-btn" data-tool="brush" title="Brush" onclick="paintApp.setTool(this)">🖌️</div>
+        <div class="pt-btn" data-tool="eraser" title="Eraser" onclick="paintApp.setTool(this)">🧹</div>
+        <div class="pt-btn" data-tool="fill" title="Fill" onclick="paintApp.setTool(this)">🪣</div>
+        <div class="pt-btn" data-tool="line" title="Line" onclick="paintApp.setTool(this)">╱</div>
+        <div class="pt-btn" data-tool="rect" title="Rectangle" onclick="paintApp.setTool(this)">▭</div>
+        <div class="pt-btn" data-tool="circle" title="Ellipse" onclick="paintApp.setTool(this)">⬭</div>
+        <div class="pt-btn" data-tool="text" title="Text" onclick="paintApp.setTool(this)">A</div>
+      </div>
+      <div class="paint-size-area">
+        <div class="size-dot active-size" data-sz="2" style="width:4px;height:4px" onclick="paintApp.setSize(this)"></div>
+        <div class="size-dot" data-sz="5" style="width:8px;height:8px;margin-top:3px" onclick="paintApp.setSize(this)"></div>
+        <div class="size-dot" data-sz="10" style="width:12px;height:12px;margin-top:3px" onclick="paintApp.setSize(this)"></div>
+      </div>
+      <div class="paint-color-area">
+        <div class="paint-current-colors">
+          <div class="paint-bg-color" id="paint-bg-sw" style="background:#ffffff" title="Background color"></div>
+          <div class="paint-fg-color" id="paint-fg-sw" style="background:#000000" title="Foreground color (click to change)"></div>
+        </div>
+        <div class="paint-palette" id="paint-palette"></div>
+      </div>
+      <div style="display:flex;gap:2px;margin-left:4px">
+        <button style="font-size:11px;height:22px;padding:0 6px" onclick="paintApp.clear()">Clear</button>
+        <button style="font-size:11px;height:22px;padding:0 6px" onclick="paintApp.download()">Save</button>
+      </div>
+    </div>
+    <div class="window-body" style="flex:1;min-height:0;">
+      <div class="paint-canvas-wrap" id="paint-wrap">
+        <canvas id="paint-canvas" width="480" height="320"></canvas>
+      </div>
+    </div>
+    <div class="paint-status">
+      <span id="paint-pos">0, 0</span>
+      <span id="paint-tool-label">Pencil</span>
+      <span id="paint-size-label">Size: 2px</span>
+    </div>
+    <div class="resize-se"></div>
+  </div>
 
-            saveState() {
-                const el = document.getElementById('win-winamp');
-                const state = {
-                    vol: this.audio.volume,
-                    posX: el.style.left,
-                    posY: el.style.top,
-                    double: el.classList.contains('winamp-double'),
-                    bass: this.bassEnabled
-                };
-                localStorage.setItem('winamp_state', JSON.stringify(state));
-            }
+  <!-- ===== COMMAND PROMPT ===== -->
+  <div id="win-cmd" class="window" style="left:90px;top:60px">
+    <div class="title-bar">
+      <div class="title-bar-text">Command Prompt</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" onclick="os.minimizeWindow('win-cmd')"></button>
+        <button aria-label="Close" onclick="os.closeWindow('win-cmd')"></button>
+      </div>
+    </div>
+    <div class="window-body" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+      <div id="cmd-screen" onclick="document.getElementById('cmd-input').focus()"></div>
+      <div id="cmd-input-line">
+        <span id="cmd-prompt-label">C:\&gt;&nbsp;</span>
+        <input id="cmd-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false"
+          onkeydown="cmdApp.handleKey(event)">
+      </div>
+    </div>
+    <div class="resize-se"></div>
+  </div>
 
-            loadState() {
-                const saved = localStorage.getItem('winamp_state');
-                const el = document.getElementById('win-winamp');
-                const isMobile = window.innerWidth < 600;
+  <!-- ===== WINAMP ===== -->
+  <div id="win-winamp" style="left:400px;top:100px">
+    <div class="wa-title-bar title-bar">
+      <div class="wa-grip"><div class="wa-title-text">WINAMP</div></div>
+      <div class="wa-mini-btn" title="Playlist" onclick="os.openWindow('playlist')">📋</div>
+      <div class="wa-mini-btn" onclick="os.minimizeWindow('win-winamp')">_</div>
+      <div class="wa-mini-btn" onclick="os.closeWindow('win-winamp')">x</div>
+    </div>
+    <div class="winamp-face">
+      <div class="wa-screen-container">
+        <div class="wa-vis-box" onclick="winamp.toggleVisMode()" title="Toggle Visualizer">
+          <canvas id="wa-vis" width="76" height="40"></canvas>
+        </div>
+        <div class="wa-info-box">
+          <div class="wa-time-row">
+            <div id="wa-timer" class="wa-timer">00:00</div>
+            <div id="wa-kbps" class="wa-kbps">—</div>
+          </div>
+          <div class="wa-marquee"><span id="wa-title">Winamp 2.91</span></div>
+        </div>
+      </div>
+      <div class="wa-sliders-row">
+        <div class="wa-slider-wrapper">
+          <div class="wa-label">VOLUME</div>
+          <input type="range" id="wa-vol-input" min="0" max="1" step="0.05" value="0.8" oninput="winamp.setVolume(this.value)">
+        </div>
+        <div id="wa-eq-btn" onclick="winamp.toggleEQ()" title="Bass Boost">EQ</div>
+        <div class="wa-slider-wrapper" style="width:30%">
+          <div class="wa-label">BAL</div>
+          <input type="range" min="-1" max="1" step="0.1" value="0" oninput="winamp.setBalance(this.value)">
+        </div>
+      </div>
+      <div class="wa-progress-row">
+        <div class="wa-progress-bg" onclick="winamp.seek(event)" id="wa-prog-bg">
+          <div id="wa-bar" class="wa-progress-fill"></div>
+          <div id="wa-thumb" class="wa-progress-knob" style="left:0%"></div>
+        </div>
+      </div>
+      <div class="wa-controls-row">
+        <button class="wa-ctrl-btn" onclick="winamp.prev()" title="Previous">⏮</button>
+        <button class="wa-ctrl-btn wa-play-btn" onclick="winamp.play()" title="Play">▶</button>
+        <button class="wa-ctrl-btn" onclick="winamp.pause()" title="Pause">⏸</button>
+        <button class="wa-ctrl-btn" onclick="winamp.stop()" title="Stop">⏹</button>
+        <button class="wa-ctrl-btn" onclick="winamp.next()" title="Next">⏭</button>
+        <div style="width:4px"></div>
+        <button class="wa-ctrl-btn" onclick="document.getElementById('wa-file-input').click()" title="Open File">⏏</button>
+        <div class="wa-credits">NULLSOFT</div>
+      </div>
+    </div>
+    <audio id="wa-audio" crossorigin="anonymous"></audio>
+  </div>
 
-                if (saved) {
-                    const state = JSON.parse(saved);
-                    if (state.vol !== undefined) {
-                        this.audio.volume = state.vol;
-                        document.getElementById('wa-vol-input').value = state.vol;
-                    }
-                    // Auto-Reset position if on Mobile or Off-screen
-                    if (isMobile || !state.posX) {
-                         this.centerWinamp(el);
-                    } else {
-                        el.style.left = state.posX;
-                        el.style.top = state.posY;
-                        if (state.double && !isMobile) el.classList.add('winamp-double');
-                    }
-                    
-                    if (state.bass) {
-                        this.bassEnabled = true;
-                        this.eqBtn.classList.add('active');
-                    }
-                } else {
-                    // First time load: Center it
-                    this.centerWinamp(el);
-                }
-            }
+  <!-- Playlist Window -->
+  <div id="win-playlist" style="left:400px;top:290px">
+    <div class="pl-title wa-title-bar">
+      <div class="wa-grip"><div class="wa-title-text">PLAYLIST EDITOR</div></div>
+      <div class="wa-mini-btn" onclick="os.closeWindow('win-playlist')">x</div>
+    </div>
+    <div class="pl-list" id="pl-list"></div>
+    <div class="pl-status" id="pl-status">0 tracks</div>
+    <div class="pl-actions">
+      <button class="pl-btn" onclick="document.getElementById('wa-file-input').click()">+ ADD</button>
+      <button class="pl-btn" onclick="winamp.clearPlaylist()">CLR</button>
+      <button class="pl-btn" onclick="winamp.shufflePlaylist()">SHFL</button>
+    </div>
+  </div>
 
-            centerWinamp(el) {
-                // Centers Winamp on the current screen viewport
-                const x = (window.innerWidth / 2) - 137; // 275/2
-                const y = (window.innerHeight / 2) - 58;  // 116/2
-                el.style.left = x + 'px';
-                el.style.top = y + 'px';
-            }
+</div><!-- end window-area -->
 
-            toggleEQ() {
-                this.vibrate();
-                this.bassEnabled = !this.bassEnabled;
-                this.eqBtn.classList.toggle('active');
-                if (this.bassFilter) {
-                    const now = this.audioCtx.currentTime;
-                    const gain = this.bassEnabled ? 15 : 0;
-                    this.bassFilter.gain.linearRampToValueAtTime(gain, now + 0.1);
-                }
-                this.saveState();
-            }
+<!-- ===== START MENU ===== -->
+<div id="start-menu" class="window">
+  <div class="start-sidebar"><div class="sidebar-text"><strong>Windows</strong> 98</div></div>
+  <div class="start-items">
+    <div class="start-item" onclick="os.openWindow('computer')"><img src="https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png"> My Computer</div>
+    <div class="start-item" onclick="os.openWindow('projects')"><img src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png"> Projects</div>
+    <div class="start-item" onclick="os.openWindow('ie')"><img src="https://win98icons.alexmeub.com/icons/png/msie1-1.png"> About Me</div>
+    <div class="start-separator"></div>
+    <div class="start-item" onclick="os.openWindow('notepad')"><img src="https://win98icons.alexmeub.com/icons/png/notepad-0.png"> Notepad</div>
+    <div class="start-item" onclick="os.openWindow('paint')"><img src="https://win98icons.alexmeub.com/icons/png/paint_old-1.png"> MS Paint</div>
+    <div class="start-item" onclick="os.openWindow('winamp')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png"> Winamp</div>
+    <div class="start-item" onclick="os.openWindow('minesweeper')"><img src="https://win98icons.alexmeub.com/icons/png/minesweeper-0.png"> Minesweeper</div>
+    <div class="start-item" onclick="os.openWindow('cmd')"><img src="https://win98icons.alexmeub.com/icons/png/ms_dos-4.png"> Command Prompt</div>
+    <div class="start-separator"></div>
+    <div class="start-item" onclick="location.reload()"><img src="https://win98icons.alexmeub.com/icons/png/shut_down_cool-4.png"> Shut Down...</div>
+  </div>
+</div>
 
-            toggleVisMode() {
-                this.vibrate();
-                this.visMode = (this.visMode === 'bars') ? 'oscilloscope' : 'bars';
-                if(this.dataArray) this.dataArray = null;
-            }
+<!-- ===== CONTEXT MENU ===== -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="ctx.arrange()">Arrange Icons</div>
+  <div class="ctx-item" onclick="ctx.refresh()">Refresh</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="os.openWindow('notepad')">New → Text Document</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctx.properties()">Properties</div>
+</div>
 
-            initAudioEngine() {
-                if (this.audioCtx) return;
-                try {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    this.audioCtx = new AudioContext();
-                    this.analyser = this.audioCtx.createAnalyser();
-                    this.bassFilter = this.audioCtx.createBiquadFilter();
-                    this.bassFilter.type = "lowshelf";
-                    this.bassFilter.frequency.value = 200; 
-                    this.bassFilter.gain.value = this.bassEnabled ? 15 : 0;
-                } catch(e) { console.error("Audio API error"); }
-            }
+<!-- ===== TASKBAR ===== -->
+<div id="taskbar">
+  <button id="start-btn" class="start-btn" onclick="os.toggleStartMenu()">
+    <img src="https://win98icons.alexmeub.com/icons/png/windows-0.png"> Start
+  </button>
+  <div style="width:2px;height:20px;border-left:1px solid gray;border-right:1px solid white;margin:0 3px"></div>
+  <div id="taskbar-list"></div>
+  <div style="width:2px;height:20px;border-left:1px solid gray;border-right:1px solid white;margin:0 3px"></div>
+  <div id="tray">
+    <span id="tray-vol" title="Volume" onclick="winamp.toggleMute()">🔊</span>
+    <span id="clock">12:00 PM</span>
+  </div>
+</div>
 
-            connectVisualizer() {
-                if (this.isVisConnected || !this.audioCtx) return;
-                try {
-                    this.source = this.audioCtx.createMediaElementSource(this.audio);
-                    this.source.connect(this.bassFilter);
-                    this.bassFilter.connect(this.analyser);
-                    this.analyser.connect(this.audioCtx.destination);
-                    this.isVisConnected = true;
-                } catch (e) { this.isVisConnected = false; }
-            }
+<!-- ========================================================= -->
+<!-- SCRIPTS                                                    -->
+<!-- ========================================================= -->
+<script>
+// ============================================================
+// PROJECTS DATA — Edit this to add your own projects!
+// ============================================================
+const PROJECTS = [
+  {
+    id: 'proj1',
+    name: 'Portfolio Site',
+    icon: 'https://win98icons.alexmeub.com/icons/png/html-0.png',
+    tech: ['HTML', 'CSS', 'JavaScript'],
+    description: 'A Windows 98-themed interactive portfolio built from scratch. Features draggable windows, a working Winamp player, MS Paint, Minesweeper, and more.',
+    status: 'Completed',
+    year: '2024',
+    github: '#',
+    live: '#'
+  },
+  {
+    id: 'proj2',
+    name: 'E-Commerce App',
+    icon: 'https://win98icons.alexmeub.com/icons/png/shopping_cart-0.png',
+    tech: ['React', 'Node.js', 'MongoDB'],
+    description: 'Full-stack e-commerce platform with product listings, cart, checkout, and an admin dashboard. Includes JWT authentication and Stripe payments.',
+    status: 'In Progress',
+    year: '2024',
+    github: '#',
+    live: '#'
+  },
+  {
+    id: 'proj3',
+    name: 'Weather Dashboard',
+    icon: 'https://win98icons.alexmeub.com/icons/png/cloud-0.png',
+    tech: ['Vue.js', 'REST API', 'Chart.js'],
+    description: 'Real-time weather dashboard consuming OpenWeatherMap API. Displays forecasts, temperature charts, wind speed, and UV index with animated icons.',
+    status: 'Completed',
+    year: '2023',
+    github: '#',
+    live: '#'
+  },
+  {
+    id: 'proj4',
+    name: 'Chat Application',
+    icon: 'https://win98icons.alexmeub.com/icons/png/msg_information-0.png',
+    tech: ['Socket.io', 'Express', 'React'],
+    description: 'Real-time chat app with multiple rooms, private messaging, emoji support, and file sharing. Uses WebSockets for instant message delivery.',
+    status: 'Completed',
+    year: '2023',
+    github: '#',
+    live: '#'
+  },
+  {
+    id: 'proj5',
+    name: 'Task Manager CLI',
+    icon: 'https://win98icons.alexmeub.com/icons/png/ms_dos-4.png',
+    tech: ['Python', 'SQLite', 'Click'],
+    description: 'Command-line task manager with SQLite persistence, priority levels, due dates, and colored output. Supports import/export in JSON format.',
+    status: 'Completed',
+    year: '2023',
+    github: '#',
+    live: null
+  },
+  {
+    id: 'proj6',
+    name: 'ML Image Classifier',
+    icon: 'https://win98icons.alexmeub.com/icons/png/image_file-1.png',
+    tech: ['Python', 'TensorFlow', 'Flask'],
+    description: 'Image classification web app using a custom CNN trained on CIFAR-10. Drag and drop an image to get instant predictions with confidence scores.',
+    status: 'Completed',
+    year: '2022',
+    github: '#',
+    live: '#'
+  }
+];
 
-            setupEvents() {
-                this.audio.addEventListener('timeupdate', () => this.updateUI());
-                this.audio.addEventListener('ended', () => this.next());
-                this.audio.addEventListener('playing', () => {
-                    const track = this.playlist[this.currentIndex];
-                    this.titleEl.innerText = `${this.currentIndex + 1}. ${track.name} (${Math.floor(this.audio.duration)}s)`;
-                });
-                
-                // Drag Prevention for file input
-                document.body.addEventListener('dragover', (e) => e.preventDefault());
-                document.body.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    if(e.dataTransfer.files && e.dataTransfer.files.length > 0) this.handleFiles(e.dataTransfer.files);
-                });
+// ============================================================
+// ABOUT ME DATA — Edit this with your own info!
+// ============================================================
+const ABOUT_ME = {
+  name: 'Your Name',
+  title: 'Full Stack Developer & Creative Technologist',
+  bio: 'Passionate developer who loves building immersive web experiences. I specialize in modern JavaScript frameworks, backend APIs, and creative UI experiments. When I am not coding, I am listening to Winamp on my vintage PC.',
+  skills: [
+    { name: 'JavaScript / TypeScript', level: 90 },
+    { name: 'React / Vue / Angular', level: 85 },
+    { name: 'Node.js / Express', level: 80 },
+    { name: 'Python / Django', level: 75 },
+    { name: 'CSS / Tailwind', level: 88 },
+    { name: 'SQL / MongoDB', level: 72 },
+  ],
+  experience: [
+    { company: 'Tech Startup', role: 'Senior Developer', years: '2022–Present' },
+    { company: 'Agency Ltd', role: 'Frontend Developer', years: '2020–2022' },
+    { company: 'Freelance', role: 'Web Developer', years: '2018–2020' },
+  ],
+  contact: { email: 'hello@example.com', github: 'github.com/yourname', linkedin: 'linkedin.com/in/yourname' }
+};
 
-                document.addEventListener('keydown', (e) => {
-                    if (e.ctrlKey && e.key === 'd') {
-                        e.preventDefault();
-                        const waWin = document.getElementById('win-winamp');
-                        waWin.classList.toggle('winamp-double');
-                        this.saveState(); 
-                    }
-                });
+// ============================================================
+// WINDOW MANAGER
+// ============================================================
+class WindowManager {
+  constructor() {
+    this.highestZ = 100;
+    this.lastTap = 0;
+    this.initClock();
+    this.initDragResize();
+    this.initStartMenuClose();
+  }
 
-                window.addEventListener('beforeunload', () => this.saveState());
-                
-                // Haptic Feedback for all buttons
-                document.querySelectorAll('button, .wa-mini-btn, .desktop-icon').forEach(b => {
-                    b.addEventListener('click', () => this.vibrate());
-                });
-            }
+  initClock() {
+    const update = () => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dc = document.getElementById('desk-clock');
+      if (dc) dc.innerHTML = now.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'}) + '<br>' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    };
+    update();
+    setInterval(update, 1000);
+  }
 
-            handleFiles(files) {
-                if (!files || files.length === 0) return;
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if(!file.type.startsWith('audio')) continue;
-                    this.playlist.push({ name: file.name, url: URL.createObjectURL(file) });
-                }
-                this.loadTrack(this.playlist.length - files.length, true);
-            }
+  handleDoubleTap(e, winId) {
+    const now = Date.now();
+    if (now - this.lastTap < 300) {
+      if (navigator.vibrate) navigator.vibrate(10);
+      this.openWindow(winId);
+      e.preventDefault();
+    }
+    this.lastTap = now;
+  }
 
-            loadTrack(index, autoPlay) {
-                if (index < 0 || index >= this.playlist.length) return;
-                this.currentIndex = index;
-                const track = this.playlist[index];
-                this.audio.src = track.url;
-                this.titleEl.innerText = `${index + 1}. ${track.name} - Stopped`;
-                this.timerEl.innerText = "00:00";
-                this.barEl.style.width = "0%";
-                this.thumbEl.style.left = "0%";
-                if (autoPlay) this.play();
-            }
+  openWindow(id) {
+    const winId = id.startsWith('win-') ? id : 'win-' + id;
+    const el = document.getElementById(winId);
+    if (!el) return;
+    if (window.innerWidth < 600 && winId !== 'win-winamp' && winId !== 'win-playlist') {
+      el.style.left = Math.max(0, (window.innerWidth / 2) - 150) + 'px';
+      el.style.top = '10px';
+      el.style.transform = '';
+    }
+    el.style.display = 'flex';
+    this.bringToFront(el);
+    this.updateTaskbar(winId, true);
+    document.getElementById('start-menu').style.display = 'none';
+    document.getElementById('start-btn').classList.remove('active');
+    document.getElementById('ctx-menu').style.display = 'none';
+    // Init apps on first open
+    if (winId === 'win-projects' && !projectsApp.initialized) projectsApp.init();
+    if (winId === 'win-ie' && !ieApp.initialized) ieApp.init();
+    if (winId === 'win-minesweeper' && !mineApp.initialized) mineApp.init();
+    if (winId === 'win-paint' && !paintApp.initialized) paintApp.init();
+    if (winId === 'win-cmd' && !cmdApp.initialized) cmdApp.init();
+    if (winId === 'win-computer' && !computerApp.initialized) computerApp.init();
+  }
 
-            next() {
-                this.vibrate();
-                if (this.playlist.length === 0) return;
-                let nextIndex = (this.currentIndex + 1) % this.playlist.length;
-                this.loadTrack(nextIndex, true);
-            }
+  closeWindow(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+    this.updateTaskbar(id, false);
+    if (id === 'win-winamp') winamp.stop();
+  }
 
-            prev() {
-                this.vibrate();
-                if (this.playlist.length === 0) return;
-                let prevIndex = (this.currentIndex - 1 + this.playlist.length) % this.playlist.length;
-                this.loadTrack(prevIndex, true);
-            }
+  minimizeWindow(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+    const btn = document.getElementById('taskbtn-' + id);
+    if (btn) btn.classList.remove('active');
+  }
 
-            async play() {
-                this.vibrate();
-                if (this.playlist.length === 0) return;
-                this.initAudioEngine();
-                if (this.audioCtx && this.audioCtx.state === 'suspended') await this.audioCtx.resume();
-                this.connectVisualizer();
-                try {
-                    await this.audio.play();
-                    this.isPlaying = true;
-                    this.startVis();
-                } catch(e) { this.titleEl.innerText = "Click Play Again"; }
-            }
+  bringToFront(el) {
+    this.highestZ++;
+    el.style.zIndex = this.highestZ;
+    document.querySelectorAll('.taskbar-item').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('taskbtn-' + el.id);
+    if (btn) btn.classList.add('active');
+  }
 
-            pause() {
-                this.vibrate();
-                this.audio.pause();
-                this.isPlaying = false;
-                this.titleEl.innerText = "*** PAUSED ***";
-                cancelAnimationFrame(this.visInterval);
-            }
+  updateTaskbar(winId, isOpen) {
+    const bar = document.getElementById('taskbar-list');
+    const existing = document.getElementById('taskbtn-' + winId);
+    if (!isOpen) { if (existing) existing.remove(); return; }
+    if (existing) { existing.classList.add('active'); return; }
 
-            stop() {
-                this.vibrate();
-                this.pause();
-                this.audio.currentTime = 0;
-                this.updateUI();
-                this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height); 
-                this.ctx.fillStyle = "black";
-                this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
-                this.titleEl.innerText = "Winamp 2.91";
-            }
+    const ICONS = {
+      'win-winamp': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png',
+      'win-notepad': 'https://win98icons.alexmeub.com/icons/png/notepad-0.png',
+      'win-computer': 'https://win98icons.alexmeub.com/icons/png/computer_explorer-4.png',
+      'win-recycle': 'https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png',
+      'win-projects': 'https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png',
+      'win-ie': 'https://win98icons.alexmeub.com/icons/png/msie1-1.png',
+      'win-minesweeper': 'https://win98icons.alexmeub.com/icons/png/minesweeper-0.png',
+      'win-paint': 'https://win98icons.alexmeub.com/icons/png/paint_old-1.png',
+      'win-cmd': 'https://win98icons.alexmeub.com/icons/png/ms_dos-4.png',
+      'win-playlist': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png',
+    };
 
-            setVolume(val) { 
-                this.audio.volume = val; 
-                this.saveState(); 
-            }
+    const NAMES = {
+      'win-winamp': 'Winamp', 'win-notepad': 'Notepad', 'win-computer': 'My Computer',
+      'win-recycle': 'Recycle Bin', 'win-projects': 'Projects', 'win-ie': 'About Me',
+      'win-minesweeper': 'Minesweeper', 'win-paint': 'Paint', 'win-cmd': 'Command Prompt',
+      'win-playlist': 'Playlist',
+    };
 
-            seek(e) {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                if(this.audio.duration) this.audio.currentTime = percent * this.audio.duration;
-            }
+    const btn = document.createElement('button');
+    btn.id = 'taskbtn-' + winId;
+    btn.className = 'taskbar-item active';
+    const icon = ICONS[winId] || '';
+    const label = NAMES[winId] || winId.replace('win-', '');
+    btn.innerHTML = `${icon ? `<img src="${icon}">` : ''}${label}`;
+    btn.onclick = () => {
+      if (navigator.vibrate) navigator.vibrate(5);
+      const win = document.getElementById(winId);
+      if (win.style.display === 'none') { win.style.display = 'flex'; this.bringToFront(win); }
+      else if (parseInt(win.style.zIndex) === this.highestZ) { this.minimizeWindow(winId); }
+      else { this.bringToFront(win); }
+    };
+    bar.appendChild(btn);
 
-            updateUI() {
-                let mins = Math.floor(this.audio.currentTime / 60);
-                let secs = Math.floor(this.audio.currentTime % 60).toString().padStart(2, '0');
-                this.timerEl.innerText = `${mins}:${secs}`;
-                if (this.audio.duration) {
-                    const pct = (this.audio.currentTime / this.audio.duration) * 100;
-                    this.barEl.style.width = pct + "%";
-                    this.thumbEl.style.left = pct + "%";
-                }
-            }
+    // Handle project detail windows
+    if (winId.startsWith('win-proj-')) {
+      const shortName = winId.replace('win-proj-', '');
+      const proj = PROJECTS.find(p => p.id === shortName);
+      const b2 = document.createElement('button');
+      b2.id = 'taskbtn-' + winId; b2.className = 'taskbar-item active';
+      b2.textContent = proj ? proj.name : shortName;
+      b2.onclick = () => { const win = document.getElementById(winId); if (win) { win.style.display = 'flex'; this.bringToFront(win); } };
+      bar.appendChild(b2);
+    }
+  }
 
-            startVis() {
-                const draw = () => {
-                    if (!this.isPlaying) return;
-                    this.visInterval = requestAnimationFrame(draw);
-                    this.ctx.fillStyle = '#000';
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  toggleStartMenu() {
+    if (navigator.vibrate) navigator.vibrate(5);
+    const menu = document.getElementById('start-menu');
+    const btn = document.getElementById('start-btn');
+    const isOpen = menu.style.display === 'flex';
+    menu.style.display = isOpen ? 'none' : 'flex';
+    menu.style.zIndex = this.highestZ + 999;
+    btn.classList.toggle('active', !isOpen);
+    document.getElementById('ctx-menu').style.display = 'none';
+  }
 
-                    if (!this.isVisConnected || !this.analyser) {
-                        this.drawFakeVis();
-                        return;
-                    }
+  initStartMenuClose() {
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('start-menu');
+      if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) {
+        menu.style.display = 'none';
+        document.getElementById('start-btn').classList.remove('active');
+      }
+      if (!e.target.closest('#ctx-menu') && !e.target.closest('#desktop-area')) {
+        document.getElementById('ctx-menu').style.display = 'none';
+      }
+      // Close notepad dropdowns
+      document.querySelectorAll('.notepad-dropdown').forEach(d => d.style.display = 'none');
+      document.querySelectorAll('.notepad-menu-btn').forEach(b => b.classList.remove('open'));
+    });
+  }
 
-                    if (this.visMode === 'oscilloscope') {
-                        this.analyser.fftSize = 2048; 
-                        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) {
-                            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-                        }
-                        this.analyser.getByteTimeDomainData(this.dataArray);
-                        this.ctx.lineWidth = 1; 
-                        this.ctx.strokeStyle = '#00E000';
-                        this.ctx.beginPath();
-                        const sliceWidth = this.canvas.width * 1.0 / this.analyser.frequencyBinCount;
-                        let x = 0;
-                        for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
-                            const v = this.dataArray[i] / 128.0;
-                            const y = v * this.canvas.height / 2;
-                            if(i === 0) this.ctx.moveTo(x, y);
-                            else this.ctx.lineTo(x, y);
-                            x += sliceWidth;
-                        }
-                        this.ctx.lineTo(this.canvas.width, this.canvas.height/2);
-                        this.ctx.stroke();
-                    } else {
-                        this.analyser.fftSize = 64; 
-                        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) {
-                            this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-                        }
-                        this.analyser.getByteFrequencyData(this.dataArray);
-                        const barWidth = (this.canvas.width / this.analyser.frequencyBinCount) * 2.5;
-                        let x = 0;
-                        for(let i = 0; i < this.analyser.frequencyBinCount; i++) {
-                            const barHeight = this.dataArray[i] / 255 * this.canvas.height;
-                            this.ctx.fillStyle = `rgb(0, ${barHeight + 100}, 0)`;
-                            this.ctx.fillRect(x, this.canvas.height - barHeight, barWidth, barHeight);
-                            this.ctx.fillStyle = '#FFF';
-                            this.ctx.fillRect(x, this.canvas.height - barHeight - 2, barWidth, 1);
-                            x += barWidth + 1;
-                        }
-                    }
-                };
-                draw();
-            }
+  initDragResize() {
+    let activeEl = null, offset = { x: 0, y: 0 }, isDragging = false;
+    let resizing = false, resizeEl = null, resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
 
-            drawFakeVis() {
-                if (this.visMode === 'oscilloscope') {
-                    this.ctx.lineWidth = 2;
-                    this.ctx.strokeStyle = '#00E000';
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(0, this.canvas.height/2);
-                    for(let i=0; i<this.canvas.width; i+=5) {
-                        this.ctx.lineTo(i, (this.canvas.height/2) + Math.sin(i + Date.now()/100)*10);
-                    }
-                    this.ctx.stroke();
-                } else {
-                    const bars = 16;
-                    const barWidth = this.canvas.width / bars;
-                    for(let i=0; i<bars; i++) {
-                        let h = Math.random() * (this.canvas.height * 0.8);
-                        this.ctx.fillStyle = '#00E000';
-                        this.ctx.fillRect(i * barWidth, this.canvas.height - h, barWidth - 1, h);
-                    }
-                }
-            }
+    const getPos = (e) => e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
+
+    const dragStart = (e) => {
+      const titleBar = e.target.closest('.title-bar, .wa-title-bar, .pl-title');
+      if (!titleBar) return;
+      if (e.target.tagName === 'BUTTON' || e.target.classList.contains('wa-mini-btn')) return;
+      activeEl = titleBar.closest('.window') || titleBar.closest('[id^="win-"]');
+      if (!activeEl) return;
+      this.bringToFront(activeEl);
+      isDragging = true;
+      const pos = getPos(e);
+      const rect = activeEl.getBoundingClientRect();
+      offset = { x: pos.x - rect.left, y: pos.y - rect.top };
+    };
+
+    const resizeStart = (e) => {
+      if (!e.target.classList.contains('resize-se')) return;
+      resizeEl = e.target.closest('.window');
+      if (!resizeEl) return;
+      resizing = true;
+      const pos = getPos(e);
+      resizeStartX = pos.x; resizeStartY = pos.y;
+      resizeStartW = resizeEl.offsetWidth; resizeStartH = resizeEl.offsetHeight;
+      e.preventDefault();
+    };
+
+    const move = (e) => {
+      if (isDragging && activeEl) {
+        e.preventDefault();
+        const pos = getPos(e);
+        let nx = pos.x - offset.x, ny = pos.y - offset.y;
+        if (ny < 0) ny = 0;
+        activeEl.style.left = nx + 'px'; activeEl.style.top = ny + 'px';
+      }
+      if (resizing && resizeEl) {
+        const pos = getPos(e);
+        const nw = Math.max(200, resizeStartW + pos.x - resizeStartX);
+        const nh = Math.max(150, resizeStartH + pos.y - resizeStartY);
+        resizeEl.style.width = nw + 'px'; resizeEl.style.height = nh + 'px';
+      }
+    };
+
+    const end = () => {
+      if (activeEl?.id === 'win-winamp') winamp.saveState();
+      isDragging = false; resizing = false;
+      activeEl = null; resizeEl = null;
+    };
+
+    document.addEventListener('mousedown', (e) => { resizeStart(e); dragStart(e); });
+    document.addEventListener('touchstart', (e) => { resizeStart(e); dragStart(e); }, { passive: false });
+    document.addEventListener('mousemove', move);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchend', end);
+
+    // Right-click context menu on desktop
+    document.getElementById('desktop-area').addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const menu = document.getElementById('ctx-menu');
+      menu.style.display = 'block';
+      menu.style.left = e.clientX + 'px'; menu.style.top = e.clientY + 'px';
+      menu.style.zIndex = this.highestZ + 9999;
+    });
+  }
+}
+
+// ============================================================
+// CONTEXT MENU ACTIONS
+// ============================================================
+const ctx = {
+  arrange() {
+    document.getElementById('ctx-menu').style.display = 'none';
+    let x = 15, y = 15;
+    document.querySelectorAll('.desktop-icon').forEach(icon => {
+      icon.style.left = x + 'px'; icon.style.top = y + 'px';
+      y += 90;
+      if (y > window.innerHeight - 100) { y = 15; x += 90; }
+    });
+  },
+  refresh() { location.reload(); },
+  properties() {
+    alert('Windows 98 Portfolio Edition\nResolution: ' + window.innerWidth + 'x' + window.innerHeight + '\nUA: ' + navigator.userAgent.split(' ').pop());
+    document.getElementById('ctx-menu').style.display = 'none';
+  }
+};
+
+// ============================================================
+// NOTEPAD APP
+// ============================================================
+const notepadApp = {
+  wordWrap: true,
+  monoFont: true,
+  currentMenuId: null,
+
+  updateStatus() {
+    const ta = document.getElementById('notepad-area');
+    const text = ta.value;
+    document.getElementById('notepad-chars').textContent = 'Characters: ' + text.length;
+    document.getElementById('notepad-words').textContent = 'Words: ' + (text.trim() ? text.trim().split(/\s+/).length : 0);
+    document.getElementById('notepad-lines').textContent = 'Lines: ' + (text.match(/\n/g) || []).length + 1;
+    const win = document.getElementById('win-notepad');
+    const titleEl = win.querySelector('.title-bar-text');
+    titleEl.textContent = (text.length > 0 ? '*' : '') + 'Untitled - Notepad';
+  },
+
+  toggleMenu(id, btn) {
+    event.stopPropagation();
+    const menuEl = document.getElementById('menu-' + id);
+    const isOpen = menuEl.style.display === 'block';
+    document.querySelectorAll('.notepad-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.notepad-menu-btn').forEach(b => b.classList.remove('open'));
+    if (!isOpen) {
+      const rect = btn.getBoundingClientRect();
+      menuEl.style.display = 'block';
+      menuEl.style.left = rect.left + 'px';
+      menuEl.style.top = rect.bottom + 'px';
+      menuEl.style.zIndex = os.highestZ + 999;
+      btn.classList.add('open');
+    }
+  },
+
+  newFile() {
+    if (document.getElementById('notepad-area').value && !confirm('Discard changes?')) return;
+    document.getElementById('notepad-area').value = '';
+    this.updateStatus();
+    document.getElementById('win-notepad').querySelector('.title-bar-text').textContent = 'Untitled - Notepad';
+  },
+
+  openFile() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.txt,.md,.js,.html,.css,.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('notepad-area').value = ev.target.result;
+        document.getElementById('win-notepad').querySelector('.title-bar-text').textContent = file.name + ' - Notepad';
+        this.updateStatus();
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  },
+
+  saveFile() {
+    const text = document.getElementById('notepad-area').value;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'document.txt'; a.click();
+  },
+
+  cutText() { document.getElementById('notepad-area').focus(); document.execCommand('cut'); },
+  copyText() { document.getElementById('notepad-area').focus(); document.execCommand('copy'); },
+  async pasteText() {
+    try {
+      const text = await navigator.clipboard.readText();
+      const ta = document.getElementById('notepad-area');
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+      ta.selectionStart = ta.selectionEnd = s + text.length;
+      this.updateStatus();
+    } catch(e) {}
+  },
+  selectAll() { document.getElementById('notepad-area').select(); },
+  insertTimestamp() {
+    const ta = document.getElementById('notepad-area');
+    const ts = new Date().toLocaleString();
+    const s = ta.selectionStart;
+    ta.value = ta.value.slice(0, s) + ts + ta.value.slice(ta.selectionEnd);
+    ta.selectionStart = ta.selectionEnd = s + ts.length;
+    this.updateStatus();
+  },
+  setFont(size) { document.getElementById('notepad-area').style.fontSize = size + 'px'; },
+  toggleWrap() {
+    this.wordWrap = !this.wordWrap;
+    document.getElementById('notepad-area').style.whiteSpace = this.wordWrap ? 'pre-wrap' : 'pre';
+    document.getElementById('notepad-area').style.overflowX = this.wordWrap ? 'auto' : 'scroll';
+  },
+  toggleFont() {
+    this.monoFont = !this.monoFont;
+    document.getElementById('notepad-area').style.fontFamily = this.monoFont ? 'monospace' : 'Arial, sans-serif';
+  }
+};
+
+// ============================================================
+// MY COMPUTER APP
+// ============================================================
+const computerApp = {
+  initialized: false,
+  history: ['root'],
+  histIdx: 0,
+
+  DRIVES: {
+    root: {
+      label: 'My Computer',
+      items: [
+        { name: 'Local Disk (C:)', icon: 'https://win98icons.alexmeub.com/icons/png/drive_fixed-4.png', id: 'c', info: '8.4 GB Free of 20 GB' },
+        { name: 'CD-ROM (D:)', icon: 'https://win98icons.alexmeub.com/icons/png/drive_cd-4.png', id: 'd', info: 'No disc' },
+        { name: 'Control Panel', icon: 'https://win98icons.alexmeub.com/icons/png/settings_gear-4.png', id: null },
+        { name: 'Printers', icon: 'https://win98icons.alexmeub.com/icons/png/printer-4.png', id: null },
+      ]
+    },
+    c: {
+      label: 'Local Disk (C:)',
+      items: [
+        { name: 'Projects', icon: 'https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png', id: 'projects' },
+        { name: 'Music', icon: 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', id: 'music' },
+        { name: 'Windows', icon: 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', id: null },
+        { name: 'Program Files', icon: 'https://win98icons.alexmeub.com/icons/png/directory_closed-4.png', id: null },
+      ]
+    },
+    d: { label: 'CD-ROM (D:)', items: [{ name: 'No disc inserted', icon: 'https://win98icons.alexmeub.com/icons/png/drive_cd-4.png', id: null }] },
+    projects: {
+      label: 'Projects',
+      items: PROJECTS.map(p => ({ name: p.name, icon: p.icon, id: 'open-proj-' + p.id }))
+    },
+    music: { label: 'Music', items: [{ name: 'Drop MP3s in Winamp!', icon: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png', id: null }] },
+  },
+
+  init() {
+    this.initialized = true;
+    this.navigate('root');
+  },
+
+  navigate(id) {
+    if (!this.DRIVES[id]) return;
+    if (this.histIdx < this.history.length - 1) this.history = this.history.slice(0, this.histIdx + 1);
+    this.history.push(id); this.histIdx = this.history.length - 1;
+    this._render(id);
+  },
+
+  goBack() { if (this.histIdx > 0) { this.histIdx--; this._render(this.history[this.histIdx]); } },
+  goForward() { if (this.histIdx < this.history.length - 1) { this.histIdx++; this._render(this.history[this.histIdx]); } },
+  goUp() { const cur = this.history[this.histIdx]; if (cur !== 'root') this.navigate('root'); },
+
+  _render(id) {
+    const loc = this.DRIVES[id];
+    document.getElementById('computer-addr').textContent = loc.label;
+    const content = document.getElementById('computer-content');
+    content.innerHTML = '';
+    loc.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'explorer-icon';
+      div.innerHTML = `<img src="${item.icon}"><span>${item.name}${item.info ? '<br><small style="color:#888">' + item.info + '</small>' : ''}</span>`;
+      div.ondblclick = () => {
+        if (item.id && item.id.startsWith('open-proj-')) {
+          const pId = item.id.replace('open-proj-', '');
+          projectsApp.openDetail(pId);
+        } else if (item.id) {
+          this.navigate(item.id);
         }
+      };
+      content.appendChild(div);
+    });
+    document.getElementById('computer-status').textContent = loc.items.length + ' object(s)';
+  }
+};
 
-        class WindowManager {
-            constructor() {
-                this.highestZ = 100; 
-                this.lastTap = 0; // For detecting double taps
-                this.initClock(); 
-                this.initDragAndDrop();
-            }
-            initClock() { setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }, 1000); }
-            
-            // MOBILE: Detect Double Taps on Touchscreens
-            handleDoubleTap(e, winId) {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - this.lastTap;
-                if (tapLength < 300 && tapLength > 0) {
-                    if(navigator.vibrate) navigator.vibrate(10);
-                    this.openWindow(winId);
-                    e.preventDefault();
-                }
-                this.lastTap = currentTime;
-            }
+// ============================================================
+// PROJECTS APP
+// ============================================================
+const projectsApp = {
+  initialized: false,
+  openWindows: {},
 
-            openWindow(id) {
-                const winId = id.startsWith('win-') ? id : 'win-' + id;
-                const winEl = document.getElementById(winId);
-                if (!winEl) return;
-                
-                // If opening for the first time or centered logic needed
-                if(window.innerWidth < 600 && winId !== 'win-winamp') { 
-                    // Center generic windows on mobile
-                    winEl.style.left = '50%'; 
-                    winEl.style.top = '10%'; 
-                    winEl.style.transform = 'translateX(-50%)';
-                }
+  init() {
+    this.initialized = true;
+    const list = document.getElementById('projects-list');
+    list.innerHTML = '';
+    PROJECTS.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'project-icon';
+      div.innerHTML = `<img src="${p.icon}"><span>${p.name}</span>`;
+      div.ondblclick = () => this.openDetail(p.id);
+      div.title = p.description.slice(0, 60) + '...';
+      list.appendChild(div);
+    });
+    document.getElementById('projects-status').textContent = PROJECTS.length + ' project(s)';
+  },
 
-                winEl.style.display = 'flex'; 
-                this.bringToFront(winEl); 
-                this.updateTaskbar(winId, true);
-                document.getElementById('start-menu').style.display = 'none'; 
-                document.getElementById('start-btn').classList.remove('active');
-            }
-            closeWindow(id) { document.getElementById(id).style.display = 'none'; this.updateTaskbar(id, false); if(id==='win-winamp') winamp.stop(); }
-            minimizeWindow(id) { document.getElementById(id).style.display = 'none'; const btn = document.getElementById('taskbtn-' + id); if(btn) btn.classList.remove('active'); }
-            
-            bringToFront(el) {
-                this.highestZ++; el.style.zIndex = this.highestZ;
-                document.querySelectorAll('.taskbar-item').forEach(b => b.classList.remove('active'));
-                const btn = document.getElementById('taskbtn-' + el.id); if (btn) btn.classList.add('active');
-            }
+  openDetail(id) {
+    const proj = PROJECTS.find(p => p.id === id);
+    if (!proj) return;
+    const winId = 'win-proj-' + id;
+    let win = document.getElementById(winId);
+    if (!win) {
+      win = document.createElement('div');
+      win.id = winId;
+      win.className = 'window win-project-detail';
+      const offset = Object.keys(this.openWindows).length * 20;
+      win.style.cssText = `left:${130 + offset}px;top:${60 + offset}px`;
+      const techTags = proj.tech.map(t => `<span class="proj-tag">${t}</span>`).join('');
+      const links = [
+        proj.github ? `<a href="${proj.github}" target="_blank">📁 GitHub</a>` : '',
+        proj.live ? `<a href="${proj.live}" target="_blank">🌐 Live Demo</a>` : ''
+      ].filter(Boolean).join('');
+      win.innerHTML = `
+        <div class="title-bar">
+          <div class="title-bar-text">${proj.name}</div>
+          <div class="title-bar-controls">
+            <button aria-label="Close" onclick="os.closeWindow('${winId}')"></button>
+          </div>
+        </div>
+        <div class="proj-detail-body">
+          <h3>📁 ${proj.name}</h3>
+          <p><strong>Status:</strong> <span style="color:${proj.status === 'Completed' ? 'green' : 'orange'}">${proj.status}</span> &nbsp; <strong>Year:</strong> ${proj.year}</p>
+          <p>${proj.description}</p>
+          <div class="proj-tags">${techTags}</div>
+          <div class="proj-links">${links}</div>
+        </div>`;
+      document.getElementById('window-area').appendChild(win);
+    }
+    win.style.display = 'flex';
+    os.bringToFront(win);
+    os.updateTaskbar(winId, true);
+    this.openWindows[id] = true;
+  }
+};
 
-            updateTaskbar(winId, isOpen) {
-                const taskbar = document.getElementById('taskbar-list');
-                const existingBtn = document.getElementById('taskbtn-' + winId);
-                if (!isOpen) { if (existingBtn) existingBtn.remove(); return; }
-                if (!existingBtn) {
-                    const btn = document.createElement('button'); btn.id = 'taskbtn-' + winId; btn.className = 'taskbar-item active';
-                    let titleText = "App";
-                    if (winId === 'win-winamp') {
-                         titleText = "Winamp";
-                         const icon = document.createElement('img');
-                         icon.src = "https://upload.wikimedia.org/wikipedia/commons/6/6b/Winamp-logo.png";
-                         btn.appendChild(icon);
-                    } else {
-                        const titleEl = document.querySelector(`#${winId} .title-bar-text`);
-                        titleText = titleEl ? titleEl.innerText : "App";
-                        const iconImg = titleEl ? titleEl.querySelector('img') : null;
-                        if(iconImg) btn.appendChild(iconImg.cloneNode());
-                    }
-                    const span = document.createElement('span'); span.innerText = titleText; btn.appendChild(span);
-                    btn.onclick = () => { if(navigator.vibrate) navigator.vibrate(5); this.toggleFromTaskbar(winId); };
-                    taskbar.appendChild(btn);
-                }
-            }
+// ============================================================
+// INTERNET EXPLORER (About Me)
+// ============================================================
+const ieApp = {
+  initialized: false,
+  pages: {},
 
-            toggleFromTaskbar(winId) {
-                const win = document.getElementById(winId);
-                if (win.style.display === 'none') { win.style.display = 'flex'; this.bringToFront(win); } 
-                else { if (parseInt(win.style.zIndex) === this.highestZ) { this.minimizeWindow(winId); } else { this.bringToFront(win); } }
-            }
+  init() {
+    this.initialized = true;
+    this.pages['about:me'] = this.buildAboutPage();
+    this.pages['about:skills'] = this.buildSkillsPage();
+    this.pages['about:contact'] = this.buildContactPage();
+    this.loadPage('about:me');
+  },
 
-            toggleStartMenu() {
-                if(navigator.vibrate) navigator.vibrate(5);
-                const menu = document.getElementById('start-menu'); const btn = document.getElementById('start-btn');
-                if (menu.style.display === 'none' || menu.style.display === '') { menu.style.display = 'flex'; menu.style.zIndex = this.highestZ + 999; btn.classList.add('active'); } 
-                else { menu.style.display = 'none'; btn.classList.remove('active'); }
-            }
+  buildAboutPage() {
+    const expRows = ABOUT_ME.experience.map(e =>
+      `<tr><td>${e.company}</td><td>${e.role}</td><td>${e.years}</td></tr>`
+    ).join('');
+    return `<div class="ie-page">
+      <h1>👤 ${ABOUT_ME.name}</h1>
+      <p><em>${ABOUT_ME.title}</em></p>
+      <p>${ABOUT_ME.bio}</p>
+      <h2>💼 Experience</h2>
+      <table><tr><th>Company</th><th>Role</th><th>Period</th></tr>${expRows}</table>
+      <p style="margin-top:12px;font-size:11px;color:#888">
+        <a onclick="ieApp.loadPage('about:skills')" style="cursor:pointer;color:blue;text-decoration:underline">→ View Skills</a> &nbsp;
+        <a onclick="ieApp.loadPage('about:contact')" style="cursor:pointer;color:blue;text-decoration:underline">→ Contact Info</a>
+      </p>
+    </div>`;
+  },
 
-            initDragAndDrop() {
-                let activeEl = null; let offset = { x: 0, y: 0 }; let isDragging = false;
-                
-                const getPos = (e) => { return (e.touches && e.touches.length > 0) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; };
-                
-                const start = (e) => {
-                    if (e.target.closest('.title-bar')) {
-                        if (e.target.tagName === 'BUTTON' || e.target.classList.contains('wa-mini-btn')) return;
-                        activeEl = e.target.closest('.window') || e.target.closest('#win-winamp'); 
-                        this.bringToFront(activeEl);
-                        isDragging = true; 
-                        const pos = getPos(e); 
-                        const rect = activeEl.getBoundingClientRect();
-                        offset = { x: pos.x - rect.left, y: pos.y - rect.top };
-                    }
-                };
-                
-                const move = (e) => {
-                    if (!isDragging || !activeEl) return; 
-                    
-                    e.preventDefault(); // Prevents page scrolling while dragging window
-                    
-                    const pos = getPos(e);
-                    let newY = pos.y - offset.y; 
-                    // Constraint to prevent dragging below safe area
-                    if(newY < 0) newY = 0;
-                    
-                    activeEl.style.left = (pos.x - offset.x) + 'px'; 
-                    activeEl.style.top = newY + 'px';
-                };
-                
-                const end = () => { 
-                    isDragging = false; 
-                    if(activeEl && activeEl.id === 'win-winamp') winamp.saveState();
-                    activeEl = null; 
-                };
-                
-                document.addEventListener('mousedown', start); document.addEventListener('touchstart', start, { passive: false });
-                document.addEventListener('mousemove', move); document.addEventListener('touchmove', move, { passive: false });
-                document.addEventListener('mouseup', end); document.addEventListener('touchend', end);
-            }
-        }
-        
-        const os = new WindowManager();
-        const winamp = new WinampApp();
-    </script>
+  buildSkillsPage() {
+    const bars = ABOUT_ME.skills.map(s =>
+      `<div><strong>${s.name}</strong>
+       <div class="skill-bar-wrap"><div class="skill-bar" style="width:${s.level}%"></div></div></div>`
+    ).join('');
+    return `<div class="ie-page">
+      <h1>🛠 Skills</h1>
+      ${bars}
+      <p style="margin-top:14px;font-size:11px">
+        <a onclick="ieApp.loadPage('about:me')" style="cursor:pointer;color:blue;text-decoration:underline">← Back to About</a>
+      </p>
+    </div>`;
+  },
+
+  buildContactPage() {
+    return `<div class="ie-page">
+      <h1>📬 Contact</h1>
+      <table>
+        <tr><th>Email</th><td>${ABOUT_ME.contact.email}</td></tr>
+        <tr><th>GitHub</th><td>${ABOUT_ME.contact.github}</td></tr>
+        <tr><th>LinkedIn</th><td>${ABOUT_ME.contact.linkedin}</td></tr>
+      </table>
+      <p style="margin-top:14px;font-size:11px">
+        <a onclick="ieApp.loadPage('about:me')" style="cursor:pointer;color:blue;text-decoration:underline">← Back to About</a>
+      </p>
+    </div>`;
+  },
+
+  loadPage(url) {
+    document.getElementById('ie-addr').value = url;
+    document.getElementById('ie-status-text').textContent = 'Loading...';
+    const bar = document.getElementById('ie-load-bar');
+    bar.style.width = '0%';
+    let pct = 0;
+    const iv = setInterval(() => {
+      pct += 30; bar.style.width = pct + '%';
+      if (pct >= 100) {
+        clearInterval(iv);
+        setTimeout(() => {
+          document.getElementById('ie-content').innerHTML = this.pages[url] || '<div class="ie-page"><h1>404 Not Found</h1></div>';
+          document.getElementById('ie-status-text').textContent = 'Done';
+        }, 100);
+      }
+    }, 60);
+  },
+
+  go() { const url = document.getElementById('ie-addr').value.trim(); this.loadPage(url); },
+  back() { this.loadPage('about:me'); },
+  reload() { this.loadPage(document.getElementById('ie-addr').value); },
+  forward() { this.loadPage('about:skills'); }
+};
+
+// ============================================================
+// MINESWEEPER
+// ============================================================
+const mineApp = {
+  initialized: false,
+  rows: 9, cols: 9, mines: 10,
+  grid: [], revealed: [], flagged: [],
+  gameOver: false, gameWon: false,
+  firstClick: true, timerInterval: null, timeElapsed: 0,
+
+  DIFFICULTIES: {
+    beginner: { rows: 9, cols: 9, mines: 10 },
+    intermediate: { rows: 16, cols: 16, mines: 40 },
+    expert: { rows: 16, cols: 30, mines: 99 }
+  },
+
+  setDifficulty(d) {
+    const cfg = this.DIFFICULTIES[d];
+    this.rows = cfg.rows; this.cols = cfg.cols; this.mines = cfg.mines;
+    this.reset();
+  },
+
+  init() {
+    this.initialized = true;
+    this.reset();
+  },
+
+  reset() {
+    clearInterval(this.timerInterval);
+    this.timeElapsed = 0;
+    this.gameOver = false; this.gameWon = false; this.firstClick = true;
+    this.grid = Array(this.rows).fill(null).map(() => Array(this.cols).fill(0));
+    this.revealed = Array(this.rows).fill(null).map(() => Array(this.cols).fill(false));
+    this.flagged = Array(this.rows).fill(null).map(() => Array(this.cols).fill(false));
+    document.getElementById('ms-face').textContent = '🙂';
+    this.renderCounter('ms-mines', this.mines);
+    this.renderCounter('ms-timer', 0);
+    this.renderGrid();
+  },
+
+  renderCounter(id, val) {
+    document.getElementById(id).textContent = String(Math.max(0, Math.min(999, val))).padStart(3, '0');
+  },
+
+  placeMines(safeR, safeC) {
+    let placed = 0;
+    while (placed < this.mines) {
+      const r = Math.floor(Math.random() * this.rows);
+      const c = Math.floor(Math.random() * this.cols);
+      if (this.grid[r][c] !== -1 && !(r === safeR && c === safeC)) {
+        this.grid[r][c] = -1; placed++;
+      }
+    }
+    for (let r = 0; r < this.rows; r++)
+      for (let c = 0; c < this.cols; c++)
+        if (this.grid[r][c] !== -1)
+          this.grid[r][c] = this.countAdjMines(r, c);
+  },
+
+  countAdjMines(r, c) {
+    let count = 0;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols && this.grid[nr][nc] === -1) count++;
+    }
+    return count;
+  },
+
+  renderGrid() {
+    const el = document.getElementById('ms-grid');
+    el.style.gridTemplateColumns = `repeat(${this.cols}, 20px)`;
+    el.innerHTML = '';
+    for (let r = 0; r < this.rows; r++)
+      for (let c = 0; c < this.cols; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'ms-cell';
+        cell.dataset.r = r; cell.dataset.c = c;
+        cell.addEventListener('click', (e) => this.click(+e.target.dataset.r, +e.target.dataset.c));
+        cell.addEventListener('contextmenu', (e) => { e.preventDefault(); this.flag(+e.target.dataset.r, +e.target.dataset.c); });
+        el.appendChild(cell);
+      }
+  },
+
+  getCell(r, c) {
+    return document.querySelector(`.ms-cell[data-r="${r}"][data-c="${c}"]`);
+  },
+
+  click(r, c) {
+    if (this.gameOver || this.gameWon || this.flagged[r][c] || this.revealed[r][c]) return;
+    if (this.firstClick) {
+      this.firstClick = false;
+      this.placeMines(r, c);
+      this.timerInterval = setInterval(() => {
+        this.timeElapsed++;
+        this.renderCounter('ms-timer', this.timeElapsed);
+        if (this.timeElapsed >= 999) clearInterval(this.timerInterval);
+      }, 1000);
+    }
+    if (this.grid[r][c] === -1) {
+      this.revealAll();
+      this.getCell(r, c).classList.add('mine-hit');
+      document.getElementById('ms-face').textContent = '😵';
+      this.gameOver = true;
+      clearInterval(this.timerInterval);
+      return;
+    }
+    this.reveal(r, c);
+    this.checkWin();
+  },
+
+  reveal(r, c) {
+    if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return;
+    if (this.revealed[r][c] || this.flagged[r][c]) return;
+    this.revealed[r][c] = true;
+    const cell = this.getCell(r, c);
+    cell.classList.add('revealed');
+    const n = this.grid[r][c];
+    if (n > 0) { cell.textContent = n; cell.dataset.n = n; }
+    else if (n === 0) for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) this.reveal(r + dr, c + dc);
+  },
+
+  flag(r, c) {
+    if (this.gameOver || this.gameWon || this.revealed[r][c]) return;
+    this.flagged[r][c] = !this.flagged[r][c];
+    const cell = this.getCell(r, c);
+    cell.textContent = this.flagged[r][c] ? '🚩' : '';
+    cell.classList.toggle('flagged', this.flagged[r][c]);
+    const remaining = this.mines - this.flagged.flat().filter(Boolean).length;
+    this.renderCounter('ms-mines', remaining);
+  },
+
+  revealAll() {
+    for (let r = 0; r < this.rows; r++) for (let c = 0; c < this.cols; c++) {
+      if (this.grid[r][c] === -1) {
+        const cell = this.getCell(r, c);
+        if (!this.flagged[r][c]) { cell.classList.add('revealed'); cell.textContent = '💣'; }
+      }
+    }
+  },
+
+  checkWin() {
+    let unrevealed = 0;
+    for (let r = 0; r < this.rows; r++) for (let c = 0; c < this.cols; c++)
+      if (!this.revealed[r][c]) unrevealed++;
+    if (unrevealed === this.mines) {
+      this.gameWon = true;
+      clearInterval(this.timerInterval);
+      document.getElementById('ms-face').textContent = '😎';
+      setTimeout(() => alert('You Win! 🎉 Time: ' + this.timeElapsed + 's'), 50);
+    }
+  }
+};
+
+// ============================================================
+// MS PAINT
+// ============================================================
+const paintApp = {
+  initialized: false,
+  tool: 'pencil',
+  fgColor: '#000000',
+  bgColor: '#ffffff',
+  brushSize: 2,
+  drawing: false,
+  lastX: 0, lastY: 0,
+  snapshot: null,
+  textMode: false,
+
+  PALETTE: [
+    '#000000','#808080','#800000','#808000','#008000','#008080','#000080','#800080',
+    '#ffffff','#c0c0c0','#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff',
+    '#ff8040','#804000','#80ff00','#004040','#0080ff','#8000ff','#ff0080','#ff8080',
+    '#ffff80','#80ff80','#80ffff','#8080ff','#ff80ff','#404040','#804080','#408080'
+  ],
+
+  init() {
+    this.initialized = true;
+    this.canvas = document.getElementById('paint-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.buildPalette();
+    this.attachEvents();
+  },
+
+  buildPalette() {
+    const pal = document.getElementById('paint-palette');
+    this.PALETTE.forEach(col => {
+      const sw = document.createElement('div');
+      sw.className = 'paint-swatch';
+      sw.style.background = col;
+      sw.title = col;
+      sw.onclick = (e) => { if (e.ctrlKey) { this.bgColor = col; document.getElementById('paint-bg-sw').style.background = col; } else { this.fgColor = col; document.getElementById('paint-fg-sw').style.background = col; } };
+      sw.oncontextmenu = (e) => { e.preventDefault(); this.bgColor = col; document.getElementById('paint-bg-sw').style.background = col; };
+      pal.appendChild(sw);
+    });
+  },
+
+  setTool(btn) {
+    document.querySelectorAll('#paint-tools .pt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    this.tool = btn.dataset.tool;
+    document.getElementById('paint-tool-label').textContent = btn.title;
+    this.canvas.style.cursor = this.tool === 'eraser' ? 'cell' : this.tool === 'fill' ? 'crosshair' : this.tool === 'text' ? 'text' : 'crosshair';
+  },
+
+  setSize(dot) {
+    document.querySelectorAll('.size-dot').forEach(d => d.classList.remove('active-size'));
+    dot.classList.add('active-size');
+    this.brushSize = +dot.dataset.sz;
+    document.getElementById('paint-size-label').textContent = 'Size: ' + this.brushSize + 'px';
+  },
+
+  getPos(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+  },
+
+  attachEvents() {
+    const start = (e) => {
+      e.preventDefault();
+      const pos = this.getPos(e);
+      if (this.tool === 'fill') { this.floodFill(Math.floor(pos.x), Math.floor(pos.y), this.fgColor); return; }
+      if (this.tool === 'text') { this.addText(pos); return; }
+      this.drawing = true;
+      this.lastX = pos.x; this.lastY = pos.y;
+      this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      if (this.tool === 'pencil' || this.tool === 'brush' || this.tool === 'eraser') {
+        this.ctx.beginPath(); this.ctx.moveTo(pos.x, pos.y);
+        this.drawDot(pos.x, pos.y);
+      }
+    };
+    const move = (e) => {
+      e.preventDefault();
+      if (!this.drawing) {
+        const pos = this.getPos(e);
+        document.getElementById('paint-pos').textContent = Math.floor(pos.x) + ', ' + Math.floor(pos.y);
+        return;
+      }
+      const pos = this.getPos(e);
+      document.getElementById('paint-pos').textContent = Math.floor(pos.x) + ', ' + Math.floor(pos.y);
+      if (this.tool === 'pencil' || this.tool === 'brush' || this.tool === 'eraser') this.drawLine(pos.x, pos.y);
+      else if (this.snapshot) {
+        this.ctx.putImageData(this.snapshot, 0, 0);
+        if (this.tool === 'line') this.drawPreviewLine(this.lastX, this.lastY, pos.x, pos.y);
+        else if (this.tool === 'rect') this.drawPreviewRect(this.lastX, this.lastY, pos.x - this.lastX, pos.y - this.lastY);
+        else if (this.tool === 'circle') this.drawPreviewCircle(this.lastX, this.lastY, pos.x, pos.y);
+      }
+    };
+    const end = () => { this.drawing = false; this.snapshot = null; };
+
+    this.canvas.addEventListener('mousedown', start); this.canvas.addEventListener('touchstart', start, { passive: false });
+    this.canvas.addEventListener('mousemove', move); this.canvas.addEventListener('touchmove', move, { passive: false });
+    this.canvas.addEventListener('mouseup', end); this.canvas.addEventListener('touchend', end);
+  },
+
+  drawDot(x, y) {
+    this.ctx.fillStyle = this.tool === 'eraser' ? this.bgColor : this.fgColor;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, this.brushSize / 2, 0, Math.PI * 2);
+    this.ctx.fill();
+  },
+
+  drawLine(x, y) {
+    this.ctx.strokeStyle = this.tool === 'eraser' ? this.bgColor : this.fgColor;
+    this.ctx.lineWidth = this.tool === 'brush' ? this.brushSize * 3 : this.brushSize;
+    this.ctx.lineCap = 'round'; this.ctx.lineJoin = 'round';
+    this.ctx.lineTo(x, y); this.ctx.stroke();
+    this.lastX = x; this.lastY = y;
+  },
+
+  drawPreviewLine(x1, y1, x2, y2) {
+    this.ctx.strokeStyle = this.fgColor; this.ctx.lineWidth = this.brushSize;
+    this.ctx.beginPath(); this.ctx.moveTo(x1, y1); this.ctx.lineTo(x2, y2); this.ctx.stroke();
+  },
+
+  drawPreviewRect(x, y, w, h) {
+    this.ctx.strokeStyle = this.fgColor; this.ctx.lineWidth = this.brushSize;
+    this.ctx.strokeRect(x, y, w, h);
+  },
+
+  drawPreviewCircle(x1, y1, x2, y2) {
+    const rx = Math.abs(x2 - x1) / 2, ry = Math.abs(y2 - y1) / 2;
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+    this.ctx.strokeStyle = this.fgColor; this.ctx.lineWidth = this.brushSize;
+    this.ctx.beginPath(); this.ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); this.ctx.stroke();
+  },
+
+  floodFill(startX, startY, fillColor) {
+    const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    const data = imageData.data;
+    const idx = (startY * this.canvas.width + startX) * 4;
+    const targetColor = [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
+    const fc = this.hexToRgb(fillColor);
+    if (!fc || (targetColor[0] === fc.r && targetColor[1] === fc.g && targetColor[2] === fc.b)) return;
+    const match = (i) => data[i] === targetColor[0] && data[i+1] === targetColor[1] && data[i+2] === targetColor[2];
+    const stack = [[startX, startY]];
+    while (stack.length) {
+      const [x, y] = stack.pop();
+      if (x < 0 || x >= this.canvas.width || y < 0 || y >= this.canvas.height) continue;
+      const i = (y * this.canvas.width + x) * 4;
+      if (!match(i)) continue;
+      data[i] = fc.r; data[i+1] = fc.g; data[i+2] = fc.b; data[i+3] = 255;
+      stack.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+    }
+    this.ctx.putImageData(imageData, 0, 0);
+  },
+
+  hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return { r, g, b };
+  },
+
+  addText(pos) {
+    const text = prompt('Enter text:');
+    if (!text) return;
+    this.ctx.fillStyle = this.fgColor;
+    this.ctx.font = (this.brushSize * 8) + 'px Arial';
+    this.ctx.fillText(text, pos.x, pos.y);
+  },
+
+  clear() {
+    this.ctx.fillStyle = this.bgColor;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  },
+
+  download() {
+    const a = document.createElement('a');
+    a.download = 'painting.png';
+    a.href = this.canvas.toDataURL();
+    a.click();
+  }
+};
+
+// ============================================================
+// COMMAND PROMPT
+// ============================================================
+const cmdApp = {
+  initialized: false,
+  cwd: 'C:\\',
+  history: [],
+  histIdx: -1,
+  env: { username: 'USER', computer: 'WIN98-PC' },
+
+  COMMANDS: {
+    help: () => `Available commands:\n  help         Show this help\n  dir          List directory\n  cd [path]    Change directory\n  cls          Clear screen\n  echo [text]  Print text\n  date         Show current date\n  time         Show current time\n  ver          OS version\n  color [n]    Change text color (1-7)\n  whoami       Current user\n  ipconfig     Network info\n  ping [host]  Ping a host\n  tree         Directory tree\n  joke         Tell a programming joke\n  matrix       Enter the Matrix\n  about        About this portfolio`,
+    cls: 'CLEAR',
+    ver: 'Microsoft Windows 98 [Version 4.10.1998]\nPortfolio Edition — Running in your browser!',
+    date: () => 'Current date: ' + new Date().toDateString(),
+    time: () => 'Current time: ' + new Date().toLocaleTimeString(),
+    whoami: () => cmdApp.env.computer + '\\' + cmdApp.env.username,
+    ipconfig: '  IPv4 Address: 192.168.1.98\n  Subnet Mask: 255.255.255.0\n  Default Gateway: 192.168.1.1\n  (simulated network)',
+    joke: () => {
+      const jokes = [
+        'Why do programmers prefer dark mode? Because light attracts bugs! 🐛',
+        'A SQL query walks into a bar, walks up to two tables and asks... "Can I join you?"',
+        'How many programmers does it take to change a light bulb? None — that\'s a hardware problem.',
+        'Why do Java developers wear glasses? Because they don\'t see sharp.',
+        '!false — It\'s funny because it\'s true.',
+      ];
+      return jokes[Math.floor(Math.random() * jokes.length)];
+    },
+    about: () => `${ABOUT_ME.name}\n${ABOUT_ME.title}\n\nProjects: ${PROJECTS.length}\nContact: ${ABOUT_ME.contact.email}`,
+    matrix: 'MATRIX',
+  },
+
+  init() {
+    this.initialized = true;
+    this.screen = document.getElementById('cmd-screen');
+    this.input = document.getElementById('cmd-input');
+    this.print('Microsoft Windows 98 [Version 4.10.1998]');
+    this.print('(C)Copyright Microsoft Corp 1981-1998.\n');
+    this.print('Type "help" for available commands.\n');
+    this.updatePrompt();
+  },
+
+  print(text, color) {
+    const span = document.createElement('span');
+    span.style.color = color || '#c0c0c0';
+    span.textContent = text + '\n';
+    this.screen.appendChild(span);
+    this.screen.scrollTop = this.screen.scrollHeight;
+  },
+
+  updatePrompt() {
+    document.getElementById('cmd-prompt-label').textContent = this.cwd + '> ';
+  },
+
+  handleKey(e) {
+    if (e.key === 'Enter') {
+      const cmd = this.input.value.trim();
+      if (!cmd) return;
+      this.print(this.cwd + '> ' + cmd, '#ffffff');
+      this.history.unshift(cmd); this.histIdx = -1;
+      this.input.value = '';
+      this.execute(cmd);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (this.histIdx < this.history.length - 1) { this.histIdx++; this.input.value = this.history[this.histIdx]; }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (this.histIdx > 0) { this.histIdx--; this.input.value = this.history[this.histIdx]; }
+      else { this.histIdx = -1; this.input.value = ''; }
+    }
+  },
+
+  execute(rawCmd) {
+    const parts = rawCmd.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1).join(' ');
+
+    if (cmd === 'cls') { this.screen.innerHTML = ''; return; }
+
+    if (cmd === 'cd') {
+      if (args === '..' && this.cwd !== 'C:\\') {
+        const parts2 = this.cwd.split('\\').filter(Boolean);
+        parts2.pop(); this.cwd = parts2.length > 1 ? parts2.join('\\') : 'C:\\';
+      } else if (args) {
+        this.cwd = this.cwd.endsWith('\\') ? this.cwd + args : this.cwd + '\\' + args;
+      }
+      this.updatePrompt(); return;
+    }
+
+    if (cmd === 'dir') {
+      this.print(' Directory of ' + this.cwd + '\n');
+      const items = PROJECTS.map(p => `  ${p.year}-01-01  ${String(Math.floor(Math.random()*99999)).padStart(8)} ${p.name}.exe`).join('\n');
+      this.print(items + '\n  ' + PROJECTS.length + ' File(s)'); return;
+    }
+
+    if (cmd === 'echo') { this.print(args || ''); return; }
+
+    if (cmd === 'color') {
+      const colors = ['#c0c0c0','#00ffff','#00ff00','#00ffcc','#ff6060','#ff00ff','#ffff00','#ffffff'];
+      const col = colors[+args] || '#c0c0c0';
+      this.screen.style.color = col;
+      document.getElementById('cmd-input').style.color = col;
+      this.print('Color changed.', col); return;
+    }
+
+    if (cmd === 'ping') {
+      const host = args || 'localhost';
+      this.print(`Pinging ${host} with 32 bytes of data:`);
+      [1,2,3,4].forEach((i, idx) => {
+        setTimeout(() => {
+          const ms = Math.floor(Math.random() * 50) + 5;
+          this.print(`Reply from ${host}: bytes=32 time=${ms}ms TTL=64`);
+        }, idx * 200);
+      }); return;
+    }
+
+    if (cmd === 'tree') {
+      this.print(`${this.cwd}\n├── Projects\n│   ├── ${PROJECTS.map(p=>p.name).join('\n│   ├── ')}\n├── Music\n└── Windows`); return;
+    }
+
+    if (cmd === 'matrix') {
+      this.runMatrix(); return;
+    }
+
+    const handler = this.COMMANDS[cmd];
+    if (handler !== undefined) {
+      const result = typeof handler === 'function' ? handler() : handler;
+      if (result !== 'MATRIX') this.print(result);
+    } else {
+      this.print(`'${cmd}' is not recognized as an internal or external command.\nType "help" for available commands.`, '#ff6060');
+    }
+  },
+
+  runMatrix() {
+    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    let count = 0;
+    const iv = setInterval(() => {
+      let line = '';
+      for (let i = 0; i < 40; i++) line += chars[Math.floor(Math.random() * chars.length)] + ' ';
+      this.print(line, '#00ff00');
+      count++;
+      if (count > 12) { clearInterval(iv); this.print('\nWake up, ' + this.env.username + '...', '#00ff00'); }
+    }, 80);
+  }
+};
+
+// ============================================================
+// RECYCLE BIN
+// ============================================================
+const recycleApp = {
+  empty() {
+    document.getElementById('recycle-content').innerHTML = `
+      <div style="text-align:center;color:#888;font-size:12px;padding:20px">
+        <img src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-4.png" style="width:48px;height:48px;display:block;margin:0 auto 8px;opacity:0.5"><br>
+        The Recycle Bin is empty.
+      </div>`;
+    document.getElementById('recycle-status').textContent = '0 items';
+  }
+};
+
+// ============================================================
+// WINAMP
+// ============================================================
+class WinampApp {
+  constructor() {
+    this.audio = document.getElementById('wa-audio');
+    this.canvas = document.getElementById('wa-vis');
+    this.ctx = this.canvas.getContext('2d');
+    this.timerEl = document.getElementById('wa-timer');
+    this.barEl = document.getElementById('wa-bar');
+    this.thumbEl = document.getElementById('wa-thumb');
+    this.titleEl = document.getElementById('wa-title');
+    this.eqBtn = document.getElementById('wa-eq-btn');
+
+    this.isPlaying = false;
+    this.visInterval = null;
+    this.audioCtx = null;
+    this.analyser = null;
+    this.source = null;
+    this.bassFilter = null;
+    this.stereoPane = null;
+    this.isVisConnected = false;
+    this.visMode = 'bars';
+    this.dataArray = null;
+    this.playlist = [];
+    this.currentIndex = 0;
+    this.bassEnabled = false;
+    this.muted = false;
+    this.savedVol = 0.8;
+
+    this.setupEvents();
+    this.loadState();
+  }
+
+  vibrate(ms = 5) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+  saveState() {
+    const el = document.getElementById('win-winamp');
+    try {
+      localStorage.setItem('winamp_state', JSON.stringify({
+        vol: this.audio.volume, posX: el.style.left, posY: el.style.top,
+        double: el.classList.contains('winamp-double'), bass: this.bassEnabled
+      }));
+    } catch(e) {}
+  }
+
+  loadState() {
+    const el = document.getElementById('win-winamp');
+    const isMobile = window.innerWidth < 600;
+    try {
+      const saved = JSON.parse(localStorage.getItem('winamp_state') || 'null');
+      if (saved) {
+        if (saved.vol !== undefined) { this.audio.volume = saved.vol; document.getElementById('wa-vol-input').value = saved.vol; }
+        if (isMobile || !saved.posX) { this.centerWinamp(el); }
+        else { el.style.left = saved.posX; el.style.top = saved.posY; if (saved.double && !isMobile) el.classList.add('winamp-double'); }
+        if (saved.bass) { this.bassEnabled = true; this.eqBtn.classList.add('active'); }
+      } else { this.centerWinamp(el); }
+    } catch(e) { this.centerWinamp(el); }
+  }
+
+  centerWinamp(el) {
+    el.style.left = Math.max(0, window.innerWidth / 2 - 220) + 'px';
+    el.style.top = Math.max(0, window.innerHeight / 2 - 93) + 'px';
+  }
+
+  toggleEQ() {
+    this.vibrate();
+    this.bassEnabled = !this.bassEnabled;
+    this.eqBtn.classList.toggle('active');
+    if (this.bassFilter) {
+      const now = this.audioCtx.currentTime;
+      this.bassFilter.gain.linearRampToValueAtTime(this.bassEnabled ? 15 : 0, now + 0.1);
+    }
+    this.saveState();
+  }
+
+  toggleVisMode() {
+    this.vibrate();
+    this.visMode = this.visMode === 'bars' ? 'oscilloscope' : this.visMode === 'oscilloscope' ? 'spectrum' : 'bars';
+    this.dataArray = null;
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    if (this.muted) { this.savedVol = this.audio.volume; this.audio.volume = 0; }
+    else this.audio.volume = this.savedVol;
+    document.getElementById('tray-vol').textContent = this.muted ? '🔇' : '🔊';
+  }
+
+  initAudioEngine() {
+    if (this.audioCtx) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.audioCtx = new AudioContext();
+      this.analyser = this.audioCtx.createAnalyser();
+      this.bassFilter = this.audioCtx.createBiquadFilter();
+      this.bassFilter.type = 'lowshelf'; this.bassFilter.frequency.value = 200;
+      this.bassFilter.gain.value = this.bassEnabled ? 15 : 0;
+      this.stereoPane = this.audioCtx.createStereoPanner();
+    } catch(e) {}
+  }
+
+  connectVisualizer() {
+    if (this.isVisConnected || !this.audioCtx) return;
+    try {
+      this.source = this.audioCtx.createMediaElementSource(this.audio);
+      this.source.connect(this.bassFilter);
+      this.bassFilter.connect(this.analyser);
+      this.analyser.connect(this.stereoPane);
+      this.stereoPane.connect(this.audioCtx.destination);
+      this.isVisConnected = true;
+    } catch(e) { this.isVisConnected = false; }
+  }
+
+  setBalance(val) {
+    if (this.stereoPane) this.stereoPane.pan.value = val;
+  }
+
+  setupEvents() {
+    this.audio.addEventListener('timeupdate', () => this.updateUI());
+    this.audio.addEventListener('ended', () => this.next());
+    this.audio.addEventListener('playing', () => {
+      const t = this.playlist[this.currentIndex];
+      if (t) {
+        this.titleEl.textContent = `${this.currentIndex + 1}. ${t.name}`;
+        document.getElementById('wa-kbps').textContent = '128k';
+        this.updatePlaylistUI();
+      }
+    });
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) this.handleFiles(e.dataTransfer.files);
+    });
+    document.addEventListener('keydown', e => {
+      if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+      if (e.ctrlKey && e.key === 'd') { e.preventDefault(); document.getElementById('win-winamp').classList.toggle('winamp-double'); this.saveState(); }
+      if (e.code === 'Space') { e.preventDefault(); this.isPlaying ? this.pause() : this.play(); }
+      if (e.code === 'ArrowRight') this.next();
+      if (e.code === 'ArrowLeft') this.prev();
+    });
+    window.addEventListener('beforeunload', () => this.saveState());
+  }
+
+  handleFiles(files) {
+    const wasEmpty = this.playlist.length === 0;
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (!f.type.startsWith('audio')) continue;
+      this.playlist.push({ name: f.name.replace(/\.[^.]+$/, ''), url: URL.createObjectURL(f) });
+    }
+    this.updatePlaylistUI();
+    if (wasEmpty && this.playlist.length > 0) this.loadTrack(0, true);
+  }
+
+  loadTrack(index, autoPlay) {
+    if (index < 0 || index >= this.playlist.length) return;
+    this.currentIndex = index;
+    const track = this.playlist[index];
+    this.audio.src = track.url;
+    this.titleEl.textContent = `${index + 1}. ${track.name}`;
+    this.timerEl.textContent = '00:00';
+    this.barEl.style.width = '0%'; this.thumbEl.style.left = '0%';
+    this.updatePlaylistUI();
+    if (autoPlay) this.play();
+  }
+
+  updatePlaylistUI() {
+    const list = document.getElementById('pl-list');
+    list.innerHTML = '';
+    this.playlist.forEach((t, i) => {
+      const div = document.createElement('div');
+      div.className = 'pl-item' + (i === this.currentIndex ? ' active' : '');
+      div.textContent = `${i + 1}. ${t.name}`;
+      div.ondblclick = () => this.loadTrack(i, true);
+      list.appendChild(div);
+    });
+    document.getElementById('pl-status').textContent = this.playlist.length + ' track(s)';
+  }
+
+  clearPlaylist() { this.stop(); this.playlist = []; this.updatePlaylistUI(); this.titleEl.textContent = 'Winamp 2.91'; }
+
+  shufflePlaylist() {
+    for (let i = this.playlist.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.playlist[i], this.playlist[j]] = [this.playlist[j], this.playlist[i]];
+    }
+    this.currentIndex = 0;
+    this.updatePlaylistUI();
+  }
+
+  prev() { this.vibrate(); if (!this.playlist.length) return; this.loadTrack((this.currentIndex - 1 + this.playlist.length) % this.playlist.length, true); }
+  next() { this.vibrate(); if (!this.playlist.length) return; this.loadTrack((this.currentIndex + 1) % this.playlist.length, true); }
+
+  async play() {
+    this.vibrate();
+    if (!this.playlist.length) return;
+    this.initAudioEngine();
+    if (this.audioCtx?.state === 'suspended') await this.audioCtx.resume();
+    this.connectVisualizer();
+    try { await this.audio.play(); this.isPlaying = true; this.startVis(); }
+    catch(e) { this.titleEl.textContent = 'Click Play Again'; }
+  }
+
+  pause() { this.vibrate(); this.audio.pause(); this.isPlaying = false; this.titleEl.textContent = '⏸ PAUSED'; cancelAnimationFrame(this.visInterval); }
+
+  stop() {
+    this.pause(); this.audio.currentTime = 0; this.updateUI();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = '#000'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.titleEl.textContent = 'Winamp 2.91';
+  }
+
+  setVolume(val) { this.audio.volume = val; if (!this.muted) this.savedVol = val; this.saveState(); }
+
+  seek(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    if (this.audio.duration) this.audio.currentTime = pct * this.audio.duration;
+  }
+
+  updateUI() {
+    const cur = this.audio.currentTime;
+    const mins = Math.floor(cur / 60), secs = Math.floor(cur % 60).toString().padStart(2, '0');
+    this.timerEl.textContent = `${mins}:${secs}`;
+    if (this.audio.duration) {
+      const pct = (cur / this.audio.duration) * 100;
+      this.barEl.style.width = pct + '%'; this.thumbEl.style.left = pct + '%';
+    }
+  }
+
+  startVis() {
+    const draw = () => {
+      if (!this.isPlaying) return;
+      this.visInterval = requestAnimationFrame(draw);
+      this.ctx.fillStyle = '#000'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      if (!this.isVisConnected || !this.analyser) { this.drawFakeVis(); return; }
+
+      if (this.visMode === 'oscilloscope') {
+        this.analyser.fftSize = 2048;
+        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        this.analyser.getByteTimeDomainData(this.dataArray);
+        this.ctx.strokeStyle = '#00E000'; this.ctx.lineWidth = 1; this.ctx.beginPath();
+        const sliceW = this.canvas.width / this.dataArray.length;
+        let x = 0;
+        this.dataArray.forEach((v, i) => {
+          const y = (v / 128) * this.canvas.height / 2;
+          i === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
+          x += sliceW;
+        });
+        this.ctx.stroke();
+      } else if (this.visMode === 'spectrum') {
+        this.analyser.fftSize = 256;
+        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const bw = this.canvas.width / this.dataArray.length;
+        this.dataArray.forEach((v, i) => {
+          const h = (v / 255) * this.canvas.height;
+          const hue = (i / this.dataArray.length) * 120;
+          this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+          this.ctx.fillRect(i * bw, this.canvas.height - h, bw, h);
+        });
+      } else {
+        this.analyser.fftSize = 64;
+        if (!this.dataArray || this.dataArray.length !== this.analyser.frequencyBinCount) this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const bw = (this.canvas.width / this.analyser.frequencyBinCount) * 2.5;
+        let x = 0;
+        this.dataArray.forEach(v => {
+          const h = (v / 255) * this.canvas.height;
+          this.ctx.fillStyle = `rgb(0, ${Math.floor(h + 100)}, 0)`;
+          this.ctx.fillRect(x, this.canvas.height - h, bw, h);
+          this.ctx.fillStyle = '#fff'; this.ctx.fillRect(x, this.canvas.height - h - 2, bw, 1);
+          x += bw + 1;
+        });
+      }
+    };
+    draw();
+  }
+
+  drawFakeVis() {
+    if (this.visMode === 'oscilloscope') {
+      this.ctx.strokeStyle = '#00E000'; this.ctx.lineWidth = 1; this.ctx.beginPath();
+      for (let i = 0; i <= this.canvas.width; i += 2) {
+        const y = this.canvas.height / 2 + Math.sin((i + Date.now() / 80) * 0.15) * 12;
+        i === 0 ? this.ctx.moveTo(i, y) : this.ctx.lineTo(i, y);
+      }
+      this.ctx.stroke();
+    } else {
+      const bars = 16, bw = this.canvas.width / bars;
+      for (let i = 0; i < bars; i++) {
+        const h = Math.random() * this.canvas.height * 0.8;
+        this.ctx.fillStyle = '#00E000'; this.ctx.fillRect(i * bw, this.canvas.height - h, bw - 1, h);
+      }
+    }
+  }
+}
+
+// ============================================================
+// BOOT SEQUENCE
+// ============================================================
+function runBoot() {
+  const fill = document.getElementById('boot-fill');
+  const msg = document.getElementById('boot-msg');
+  const msgs = ['Loading BIOS...', 'Initializing hardware...', 'Loading Windows 98...', 'Starting programs...', 'Welcome!'];
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += 5; fill.style.width = pct + '%';
+    msg.textContent = msgs[Math.floor(pct / 22)] || 'Loading...';
+    if (pct >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        const bs = document.getElementById('boot-screen');
+        bs.style.opacity = '0';
+        setTimeout(() => { bs.style.display = 'none'; notepadApp.updateStatus(); }, 600);
+      }, 300);
+    }
+  }, 40);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+const os = new WindowManager();
+const winamp = new WinampApp();
+runBoot();
+</script>
 </body>
 </html>
